@@ -5,6 +5,7 @@ description = "Bridge bidding agents training"
 requires-python = ">=3.14"
 dependencies = [
      "dds3",
+     "pydantic>=2.13.4",
 ]
 
 [dependency-groups]
@@ -17,7 +18,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/bb_agents"]
+packages = ["src/sampler", "src/models", "src/consts"]
 
 # dds3 is built locally via the Makefile (`make build-dds`) and dropped
 # into vendor/ as a wheel. The Bazel py_wheel rule mislabels it py3-none-any,
