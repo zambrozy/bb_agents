@@ -61,3 +61,9 @@ STRAIN_TO_CHAR = {
     Strain.SPADES: "S", Strain.HEARTS: "H", Strain.DIAMONDS: "D",
     Strain.CLUBS: "C", Strain.NOTRUMP: "NT",
 }
+
+# Suit -> Unicode symbol for readable deal rendering.
+SUIT_TO_SYMBOL = {
+    Suit.SPADES: "♠", Suit.HEARTS: "♥",
+    Suit.DIAMONDS: "♦", Suit.CLUBS: "♣",
+}
