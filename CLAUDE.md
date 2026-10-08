@@ -10,4 +10,4 @@ This workspace provides tools and an agent environment for project development.
 - **Editing**: Avoid to write lines longer than 80 characters to maintain readability.
 
 ## Project Structure
-- `.venv/`: Managed by `uv`, targeting Python 3.14.
+- read README.md for project description 
