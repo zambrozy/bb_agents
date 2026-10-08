@@ -63,3 +63,22 @@ def test_sample_and_analyze_pairs_deal_with_analysis():
     )
     assert isinstance(deal, Deal)
     assert analysis.tricks_for(Strain.NOTRUMP, Seat.NORTH) >= 0
+
+
+def test_format_deal_has_one_line_per_seat():
+    """The readable deal layout prints one line per seat."""
+    deal = DealSampler(seed=5).sample_deal()
+    lines = DealSampler.format_deal(deal).splitlines()
+    assert len(lines) == 4
+    assert lines[0].startswith("N")
+
+
+def test_format_report_contains_key_sections():
+    """The report bundles PBN, hand layout, and par info."""
+    sampler = DealSampler(seed=2026)
+    deal, analysis = sampler.sample_and_analyze()
+    report = sampler.format_report(deal, analysis)
+    assert deal.to_pbn() in report
+    assert "Par score:" in report
+    assert "Par contract:" in report
+    assert "NT" in report
