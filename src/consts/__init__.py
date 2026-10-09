@@ -1,6 +1,6 @@
 """Bridge domain constants shared across the sampler module."""
 
-from enum import IntEnum
+from enum import IntEnum, StrEnum
 
 
 class Suit(IntEnum):
@@ -29,6 +29,15 @@ class Seat(IntEnum):
     EAST = 1
     SOUTH = 2
     WEST = 3
+
+
+class CallType(StrEnum):
+    """Kind of call made during the bidding."""
+
+    PASS = "P"
+    BID = "BID"
+    DOUBLE = "X"
+    REDOUBLE = "XX"
 
 
 class Vulnerability(IntEnum):
@@ -67,3 +76,18 @@ SUIT_TO_SYMBOL = {
     Suit.SPADES: "♠", Suit.HEARTS: "♥",
     Suit.DIAMONDS: "♦", Suit.CLUBS: "♣",
 }
+
+# Contract levels a bid may name.
+MIN_LEVEL = 1
+MAX_LEVEL = 7
+
+# Consecutive passes that close the auction after a bid.
+PASSES_TO_END_AFTER_BID = 3
+# Calls (all passes) that end an auction with no bid (passed out).
+PASSES_TO_END_PASSED_OUT = 4
+
+# Strains from lowest to highest as ranked in the bidding.
+BID_STRAIN_ORDER = (
+    Strain.CLUBS, Strain.DIAMONDS, Strain.HEARTS,
+    Strain.SPADES, Strain.NOTRUMP,
+)
