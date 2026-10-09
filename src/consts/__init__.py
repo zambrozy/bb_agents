@@ -1,6 +1,7 @@
 """Bridge domain constants shared across the sampler module."""
 
 from enum import IntEnum, StrEnum
+from typing import Literal
 
 
 class Suit(IntEnum):
@@ -91,3 +92,8 @@ BID_STRAIN_ORDER = (
     Strain.CLUBS, Strain.DIAMONDS, Strain.HEARTS,
     Strain.SPADES, Strain.NOTRUMP,
 )
+
+SEAT_NAMES = Literal["NORTH", "EAST", "SOUTH", "WEST"]
+CONVENTION = Literal["SAYC", "2/1 Force Game"]
+
+CALL_PATTERN = r"^(P|X|XX|[1-7](C|D|H|S|NT))$"

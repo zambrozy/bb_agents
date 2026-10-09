@@ -9,6 +9,7 @@ from consts import (
     MAX_LEVEL,
     MIN_LEVEL,
     STRAIN_TO_CHAR,
+    CALL_PATTERN,
     CallType,
     Strain,
 )
@@ -85,3 +86,13 @@ class Call(BaseModel):
         if self.is_bid:
             return f"{self.level}{STRAIN_TO_CHAR[self.strain]}"
         return self.kind.value
+
+
+class PlayerReply(BaseModel):
+    reasoning : str = Field(
+        description="Analysis of the hand..."
+        )
+    call: str = Field(
+        pattern=CALL_PATTERN,
+        description="Your call: P, X, XX or a bid like !c, 2H, 4NT, 7S, 7D" 
+        )
