@@ -100,6 +100,28 @@ class DealSampler:
         return "\n".join(lines)
 
     @staticmethod
+    def dict_deal_format(deal: Deal) -> dict:
+        """Represents a deal as a seat: hand dictionary.
+
+        Args:
+            deal (Deal): The deal to render.
+
+        Returns:
+            dict: key: on of (N, E, S, W),
+            value: string hand representation.
+        """
+        deal_dict = {}
+        for seat in Seat:
+            segments = deal.hands[seat].pbn_segment().split(".")
+            suits = "  ".join(
+                f"{SUIT_TO_SYMBOL[suit]} {ranks or '-'}"
+                for suit, ranks in zip(Suit, segments)
+            )
+            deal_dict[SEAT_TO_PBN[seat]] = suits
+
+        return deal_dict
+
+    @staticmethod
     def format_analysis(analysis: DealAnalysis) -> str:
         """Render double-dummy tricks and par as a table.
 
