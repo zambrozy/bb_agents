@@ -10,6 +10,7 @@ from consts import (
     PASSES_TO_END_PASSED_OUT,
     CallType,
     Seat,
+    Vulnerability
 )
 from models.bidding.call import Call
 from models.bidding.contract import Contract
@@ -27,10 +28,12 @@ class BiddingHistory(BaseModel):
 
     Attributes:
         dealer (Seat): Seat that makes the first call.
+        vulnerability (Vulnerability): deal vulnerability
         calls (list[Call]): Calls made so far, in order.
     """
 
     dealer: Seat
+    vulnerability: Vulnerability
     calls: list[Call] = Field(default_factory=list)
 
     def seat_of(self, index: int) -> Seat:

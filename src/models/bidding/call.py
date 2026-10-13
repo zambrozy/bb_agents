@@ -1,15 +1,17 @@
 """Pydantic model for a single call made during the bidding."""
 
+import re
 from typing import Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from consts import (
     BID_STRAIN_ORDER,
+    CALL_PATTERN,
+    CHAR_TO_STRAIN,
     MAX_LEVEL,
     MIN_LEVEL,
     STRAIN_TO_CHAR,
-    CALL_PATTERN,
     CallType,
     Strain,
 )
@@ -64,6 +66,22 @@ class Call(BaseModel):
         """Build a redouble (-> Call)."""
         return cls(kind=CallType.REDOUBLE)
 
+    @classmethod
+    def from_str(cls, text: str) -> Self:
+        """Parse `1NT`, `P`, `X`, `XX`, ... (text: str) -> Call.
+
+        Surrounding spaces and letter case are ignored.
+
+        Raises:
+            ValueError: If `text` is not a valid call.
+        """
+        token = text.strip().upper()
+        if not re.fullmatch(CALL_PATTERN, token):
+            raise ValueError(f"invalid call: {text!r}")
+        if token[0].isdigit():
+            return cls.bid(int(token[0]), CHAR_TO_STRAIN[token[1:]])
+        return cls(kind=CallType(token))
+
     @property
     def is_bid(self) -> bool:
         """Whether this call is a bid (bool)."""
@@ -94,5 +112,13 @@ class PlayerReply(BaseModel):
         )
     call: str = Field(
         pattern=CALL_PATTERN,
-        description="Your call: P, X, XX or a bid like !c, 2H, 4NT, 7S, 7D" 
+        description="Your call: P, X, XX or a bid like 1C, 2H, 4NT, 7S, 7D"
         )
+
+    def to_call(self) -> Call:
+        """Convert the LLM reply into a Call (-> Call).
+
+        Raises:
+            ValueError: If `call` is not a valid call string.
+        """
+        return Call.from_str(self.call)

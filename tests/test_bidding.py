@@ -2,13 +2,13 @@
 
 import pytest
 
-from consts import CallType, Seat, Strain
-from models.bidding import BiddingHistory, Call
+from consts import CallType, Seat, Strain, Vulnerability
+from models.bidding import BiddingHistory, Call, PlayerReply
 
 
 def _play(dealer: Seat, calls: list[Call]) -> BiddingHistory:
     """Build a history by adding `calls` in order."""
-    history = BiddingHistory(dealer=dealer)
+    history = BiddingHistory(dealer=dealer, vulnerability=Vulnerability.NONE)
     for call in calls:
         history.add(call)
     return history
@@ -37,7 +37,9 @@ def test_bid_ranking():
 
 def test_add_mutates_and_rotates_seats():
     """`add` appends in place and moves to the next seat."""
-    history = BiddingHistory(dealer=Seat.WEST)
+    history = BiddingHistory(
+        dealer=Seat.WEST, vulnerability=Vulnerability.NONE
+    )
     assert history.next_seat == Seat.WEST
     history.add(Call.bid(1, Strain.CLUBS))
     assert len(history.calls) == 1
@@ -54,7 +56,9 @@ def test_insufficient_bid_is_rejected():
 
 def test_double_and_redouble_rules():
     """Double needs an opposing bid; redouble an opposing double."""
-    history = BiddingHistory(dealer=Seat.NORTH)
+    history = BiddingHistory(
+        dealer=Seat.NORTH, vulnerability=Vulnerability.NONE
+    )
     assert not history.is_legal(Call.double())
     history.add(Call.bid(1, Strain.CLUBS))  # N
     assert history.is_legal(Call.double())  # E
@@ -130,9 +134,54 @@ def test_declarer_when_partner_bid_strain_first():
 
 def test_legal_calls_start_of_auction():
     """At the start: pass and all 35 bids, no double or redouble."""
-    calls = BiddingHistory(dealer=Seat.EAST).legal_calls()
+    history = BiddingHistory(
+        dealer=Seat.EAST, vulnerability=Vulnerability.NONE
+    )
+    calls = history.legal_calls()
     assert len(calls) == 36
     assert Call.double() not in calls
+
+
+def _all_calls() -> list[Call]:
+    """Every possible call: pass, double, redouble and 35 bids."""
+    bids = [
+        Call.bid(level, strain)
+        for level in range(1, 8)
+        for strain in Strain
+    ]
+    return [Call.make_pass(), Call.double(), Call.redouble(), *bids]
+
+
+def test_from_str_round_trips_every_call():
+    """`from_str(str(call))` gives back the same call."""
+    calls = _all_calls()
+    assert len(calls) == 38
+    for call in calls:
+        assert Call.from_str(str(call)) == call
+
+
+def test_from_str_ignores_case_and_spaces():
+    """Whitespace and letter case do not matter."""
+    assert Call.from_str(" 3nt ") == Call.bid(3, Strain.NOTRUMP)
+    assert Call.from_str("p") == Call.make_pass()
+    assert Call.from_str("xx") == Call.redouble()
+
+
+@pytest.mark.parametrize(
+    "text", ["", "8C", "0S", "1X", "1", "NT", "BID", "pass", "1NTT"]
+)
+def test_from_str_rejects_invalid_text(text):
+    """Strings that are not calls raise ValueError."""
+    with pytest.raises(ValueError):
+        Call.from_str(text)
+
+
+def test_player_reply_converts_to_call():
+    """A valid reply converts to a Call; a bad one fails on build."""
+    reply = PlayerReply(reasoning="12 HCP, balanced", call="1NT")
+    assert reply.to_call() == Call.bid(1, Strain.NOTRUMP)
+    with pytest.raises(ValueError):
+        PlayerReply(reasoning="oops", call="8C")
 
 
 def test_legal_calls_after_seven_notrump():

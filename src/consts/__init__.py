@@ -72,6 +72,9 @@ STRAIN_TO_CHAR = {
     Strain.CLUBS: "C", Strain.NOTRUMP: "NT",
 }
 
+# Human-readable contract label -> Strain (inverse of STRAIN_TO_CHAR).
+CHAR_TO_STRAIN = {char: strain for strain, char in STRAIN_TO_CHAR.items()}
+
 # Suit -> Unicode symbol for readable deal rendering.
 SUIT_TO_SYMBOL = {
     Suit.SPADES: "♠", Suit.HEARTS: "♥",
