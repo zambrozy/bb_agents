@@ -184,6 +184,38 @@ def test_player_reply_converts_to_call():
         PlayerReply(reasoning="oops", call="8C")
 
 
+def _table_cells(history: BiddingHistory) -> list[list[str]]:
+    """Table rows split into cells, ignoring column padding."""
+    return [line.split() for line in history.to_table().splitlines()]
+
+
+def test_to_table_pads_rows_before_the_dealer():
+    """South dealing: the first row starts with two `-` cells."""
+    history = _play(
+        Seat.SOUTH,
+        [
+            Call.bid(1, Strain.HEARTS), Call.make_pass(),
+            Call.bid(2, Strain.HEARTS), Call.make_pass(),
+            Call.bid(4, Strain.HEARTS), Call.make_pass(),
+            Call.make_pass(), Call.make_pass(),
+        ],
+    )
+    assert _table_cells(history) == [
+        ["N", "E", "S", "W"],
+        ["-", "-", "1H", "P"],
+        ["2H", "P", "4H", "P"],
+        ["P", "P"],
+    ]
+
+
+def test_to_table_with_no_calls_yet():
+    """An empty auction shows the header, plus padding if needed."""
+    north = _play(Seat.NORTH, [])
+    west = _play(Seat.WEST, [])
+    assert _table_cells(north) == [["N", "E", "S", "W"]]
+    assert _table_cells(west) == [["N", "E", "S", "W"], ["-", "-", "-"]]
+
+
 def test_legal_calls_after_seven_notrump():
     """After 7NT only pass and double remain."""
     history = _play(Seat.NORTH, [Call.bid(7, Strain.NOTRUMP)])

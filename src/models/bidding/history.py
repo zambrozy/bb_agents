@@ -6,8 +6,11 @@ from consts import (
     BID_STRAIN_ORDER,
     MAX_LEVEL,
     MIN_LEVEL,
+    NO_CALL_MARK,
     PASSES_TO_END_AFTER_BID,
     PASSES_TO_END_PASSED_OUT,
+    SEAT_TO_PBN,
+    TABLE_COL_WIDTH,
     CallType,
     Seat,
     Vulnerability
@@ -121,6 +124,23 @@ class BiddingHistory(BaseModel):
                 f"illegal call {call} for {self.next_seat.name}"
             )
         self.calls.append(call)
+
+    def to_table(self) -> str:
+        """Auction as a table with a seat header, one round per row
+        (-> str).
+
+        Seats before the dealer are shown as `-`.
+        """
+        cells = [NO_CALL_MARK] * self.dealer
+        cells += [str(call) for call in self.calls]
+        rows = [[SEAT_TO_PBN[seat] for seat in Seat]]
+        rows += [
+            cells[i:i + len(Seat)] for i in range(0, len(cells), len(Seat))
+        ]
+        return "\n".join(
+            " ".join(cell.ljust(TABLE_COL_WIDTH) for cell in row).rstrip()
+            for row in rows
+        )
 
     @property
     def contract(self) -> Contract | None:
