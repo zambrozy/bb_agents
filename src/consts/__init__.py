@@ -81,6 +81,10 @@ SUIT_TO_SYMBOL = {
     Suit.DIAMONDS: "♦", Suit.CLUBS: "♣",
 }
 
+# Auction table rendering: column width and mark for "no call yet".
+TABLE_COL_WIDTH = 4
+NO_CALL_MARK = "-"
+
 # Contract levels a bid may name.
 MIN_LEVEL = 1
 MAX_LEVEL = 7
