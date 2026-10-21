@@ -12,6 +12,8 @@ from consts import Seat
 def update_history(
         left: BiddingHistory,
         right: Call) -> BiddingHistory:
+    """Reducer: history with `right` appended
+    (BiddingHistory, Call) -> BiddingHistory (new copy)."""
 
     left_copy = left.model_copy(deep=True)
     left_copy.calls.append(right)
@@ -23,13 +25,28 @@ def update_player(
         left: Seat,
         right: str
 ) -> Seat:
-    
+    """Reducer: the seat after `left`; `right` is ignored
+    (Seat, str) -> Seat."""
+
     next_seat = (left + 1) % len(Seat)
 
     return Seat(next_seat)
 
 
 class BiddingState(BaseModel):
+    """State of the bidding graph.
+
+    Attributes:
+        history (BiddingHistory): Auction so far; updated with a Call.
+        proposed (PlayerReply | None): Reply awaiting validation.
+        try_nb (int): Invalid replies of the current player.
+        max_try_nb (int): Invalid replies before a forced pass.
+        reasoning_history (list[PlayerReply]): Accepted replies, one
+            per call in `history`.
+        deal (dict[str, str]): Seat letter -> hand text.
+        player_turn (Seat): Seat on turn; advances on update.
+    """
+
     history: Annotated[BiddingHistory, update_history]
     proposed: PlayerReply | None = None
     try_nb: int = 0
