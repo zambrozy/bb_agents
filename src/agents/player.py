@@ -11,6 +11,27 @@ You receive auction history and Your previous thoughts. You have to decide what 
 Use {convention} bidding convention.
 """
 
+# Sections of the user message sent to a player on each turn.
+TURN_PROMPT = """\
+Your seat: {seat}
+Your hand: {hand}
+
+Auction so far:
+{auction}
+
+Your earlier reasoning:
+{reasoning}
+"""
+
+REJECTED_PROMPT = """
+Your previous attempt was REJECTED as an illegal call. Choose again.
+Rejected call: {call}
+Reasoning behind it:
+{reasoning}
+"""
+
+NO_REASONING = "(none yet)"
+
 def create_player(
     model_name: str,
     side: SEAT_NAMES,
