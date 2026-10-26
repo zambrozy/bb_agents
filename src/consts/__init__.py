@@ -108,5 +108,10 @@ CALL_PATTERN = r"^(P|X|XX|[1-7](C|D|H|S|NT))$"
 # Seat names of the two partnerships.
 PARTNER_SEATS = (("NORTH", "SOUTH"), ("EAST", "WEST"))
 
+# Model request limits: seconds to wait for a reply, retries after a
+# failed request.
+DEFAULT_TIMEOUT = 60.0
+DEFAULT_MAX_RETRIES = 1
+
 # Default location of the players config, relative to the project root.
 DEFAULT_CONFIG_PATH = "config/bidding.toml"

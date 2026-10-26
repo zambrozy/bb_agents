@@ -4,9 +4,15 @@ import tomllib
 from pathlib import Path
 from typing import Self, get_args
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
 
-from consts import CONVENTION, PARTNER_SEATS, SEAT_NAMES
+from consts import (
+    CONVENTION,
+    DEFAULT_MAX_RETRIES,
+    DEFAULT_TIMEOUT,
+    PARTNER_SEATS,
+    SEAT_NAMES,
+)
 
 
 class PlayerConfig(BaseModel):
@@ -15,10 +21,14 @@ class PlayerConfig(BaseModel):
     Attributes:
         model (str): Chat model id, e.g. `provider:model-name`.
         convention (CONVENTION): Bidding convention to play.
+        timeout (float): Seconds to wait for a model reply.
+        max_retries (int): Retries after a failed model request.
     """
 
     model: str
     convention: CONVENTION
+    timeout: float = Field(default=DEFAULT_TIMEOUT, gt=0)
+    max_retries: int = Field(default=DEFAULT_MAX_RETRIES, ge=0)
 
 
 class BiddingConfig(BaseModel):

@@ -18,7 +18,11 @@ def create_players(
     -> dict[Seat, Runnable]."""
     return {
         Seat[name]: create_player(
-            player.model, name, player.convention
+            player.model,
+            name,
+            player.convention,
+            player.timeout,
+            player.max_retries,
         )
         for name, player in config.players.items()
     }
