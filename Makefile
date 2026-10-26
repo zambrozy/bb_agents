@@ -1,4 +1,4 @@
-.PHONY: help install sync test sample build-dds verify-dds clean-dds clean
+.PHONY: help install sync test sample bidbuild-dds verify-dds clean-dds clean
 
 # DDS source configuration — override on the command line if needed, e.g.
 #   make build-dds DDS_REF=main
@@ -22,6 +22,7 @@ help:
 	@echo "  sync       - run 'uv sync' (assumes vendor wheel already built)"
 	@echo "  test       - run this project's pytest suite"
 	@echo "  sample     - print a random deal + DD analysis (optional SEED=<int>)"
+	@echo "  bid        - play one auction with LLM players (config/bidding.toml)"
 	@echo "  verify-dds - run DDS's upstream tests against the installed wheel"
 	@echo "  clean-dds  - remove $(DDS_DIR) and $(VENDOR_DIR)"
 	@echo "  clean      - clean-dds plus .venv and uv.lock"
@@ -53,6 +54,10 @@ sample:
 	uv run python -c "from sampler import DealSampler as D; \
 	d, a = D($(SEED)).sample_and_analyze(); \
 	print(D.format_report(d, a))"
+
+# Play one auction. ARGS is optional, e.g. make bid ARGS="--seed 42".
+bid:
+	uv run python scripts/play_bidding.py $(ARGS)
 
 # Run DDS's own upstream test suite (in $(DDS_DIR), gitignored & regenerated)
 # as a build-acceptance gate. PYTHONPATH follows DDS's docs/python_interface.md:
