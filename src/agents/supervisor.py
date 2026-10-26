@@ -138,12 +138,9 @@ def player_bid(
     """Ask the player on turn for a call (BiddingState, Runtime)
     -> {"proposed": PlayerReply}."""
     player = runtime.context["players"][state.history.next_seat]
-    result = player.invoke(
-        {"messages": [
-            {"role": "user", "content": build_turn_prompt(state)}
-        ]}
-    )
-    return {"proposed": result["structured_response"]}
+    reply = player.invoke({"turn": build_turn_prompt(state)})
+
+    return {"proposed": reply}
 
 
 def create_supervisor() -> CompiledStateGraph:

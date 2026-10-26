@@ -104,3 +104,9 @@ SEAT_NAMES = Literal["NORTH", "EAST", "SOUTH", "WEST"]
 CONVENTION = Literal["SAYC", "2/1 Force Game"]
 
 CALL_PATTERN = r"^(P|X|XX|[1-7](C|D|H|S|NT))$"
+
+# Seat names of the two partnerships.
+PARTNER_SEATS = (("NORTH", "SOUTH"), ("EAST", "WEST"))
+
+# Default location of the players config, relative to the project root.
+DEFAULT_CONFIG_PATH = "config/bidding.toml"

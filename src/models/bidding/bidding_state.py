@@ -1,4 +1,4 @@
-from langgraph.graph.state import CompiledStateGraph
+from langchain_core.runnables import Runnable
 from pydantic import BaseModel
 
 from operator import add
@@ -60,9 +60,10 @@ class Context(TypedDict):
     """Runtime context passed to the graph nodes.
 
     Attributes:
-        players (dict[Seat, CompiledStateGraph]): Player per seat.
+        players (dict[Seat, Runnable]): Player per seat; takes
+            {"turn": str} and returns a PlayerReply.
     """
 
-    players: dict[Seat, CompiledStateGraph]
+    players: dict[Seat, Runnable]
     
     
