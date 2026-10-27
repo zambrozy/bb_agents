@@ -216,6 +216,16 @@ def test_to_table_with_no_calls_yet():
     assert _table_cells(west) == [["N", "E", "S", "W"], ["-", "-", "-"]]
 
 
+def test_to_list_names_the_seat_of_each_call():
+    """Calls are listed in order, starting from the dealer."""
+    history = _play(
+        Seat.EAST,
+        [Call.bid(1, Strain.SPADES), Call.double(), Call.make_pass()],
+    )
+    assert history.to_list() == ["EAST: 1S", "SOUTH: X", "WEST: P"]
+    assert _play(Seat.NORTH, []).to_list() == []
+
+
 def test_legal_calls_after_seven_notrump():
     """After 7NT only pass and double remain."""
     history = _play(Seat.NORTH, [Call.bid(7, Strain.NOTRUMP)])
