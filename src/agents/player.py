@@ -7,21 +7,26 @@ from consts import (
     CONVENTION,
     DEFAULT_MAX_RETRIES,
     DEFAULT_TIMEOUT,
+    PARTNER_SEATS,
     SEAT_NAMES,
 )
 
 system_prompt = """
-You are a bridge player on {side} side. Your task is to take part in a bidding stage of a game.
-You receive auction history and Your previous thoughts. You have to decide what to bid on your turn.
+You are the bridge player at seat {seat}. Your partner is {partner}. \
+Your opponents are {opponents}.
+Your task is to take part in a bidding stage of a game. Each turn you \
+receive your hand, the dealer, the vulnerability, the auction so far and \
+Your previous thoughts. You have to decide what to bid on your turn.
 Use {convention} bidding convention.
 """
 
 # Sections of the user message sent to a player on each turn.
 TURN_PROMPT = """\
-Your seat: {seat}
+Dealer: {dealer}
+Vulnerability: {vulnerability}
 Your hand: {hand}
 
-Auction so far:
+Auction so far (in order):
 {auction}
 
 Your earlier reasoning:
@@ -36,23 +41,42 @@ Reasoning behind it:
 """
 
 NO_REASONING = "(none yet)"
+NO_CALLS = "(no calls yet)"
+
+
+def table_roles(seat: SEAT_NAMES) -> tuple[str, str]:
+    """Partner and opponents of a seat (seat: seat name)
+    -> (partner name, opponent names joined by " and ")."""
+    for pair in PARTNER_SEATS:
+        if seat in pair:
+            partner = pair[0] if pair[1] == seat else pair[1]
+        else:
+            opponents = " and ".join(pair)
+
+    return partner, opponents
 
 
 def create_player(
     model_name: str,
-    side: SEAT_NAMES,
+    seat: SEAT_NAMES,
     convention: CONVENTION,
     timeout: float = DEFAULT_TIMEOUT,
     max_retries: int = DEFAULT_MAX_RETRIES,
 ) -> Runnable[dict[str, str], PlayerReply]:
-    """Build a player (model_name: `provider:model`, side, convention,
+    """Build a player (model_name: `provider:model`, seat, convention,
     timeout: seconds per reply, max_retries: int)
     -> runnable taking {"turn": str} and returning a PlayerReply."""
+    partner, opponents = table_roles(seat)
     model = init_chat_model(
         model_name, timeout=timeout, max_retries=max_retries
     ).with_structured_output(PlayerReply)
     prompt = ChatPromptTemplate.from_messages([
-        ("system", system_prompt.format(side=side, convention=convention)),
+        ("system", system_prompt.format(
+            seat=seat,
+            partner=partner,
+            opponents=opponents,
+            convention=convention,
+        )),
         ("human", "{turn}"),
     ])
 

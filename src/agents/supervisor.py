@@ -4,8 +4,13 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.runtime import Runtime
 
-from agents.player import NO_REASONING, REJECTED_PROMPT, TURN_PROMPT
-from consts import SEAT_TO_PBN, Seat
+from agents.player import (
+    NO_CALLS,
+    NO_REASONING,
+    REJECTED_PROMPT,
+    TURN_PROMPT,
+)
+from consts import SEAT_TO_PBN, VULNERABILITY_TEXT, Seat
 from sampler import DealSampler
 from models.bidding import (BiddingState,
                             Context,
@@ -118,9 +123,10 @@ def build_turn_prompt(state: BiddingState) -> str:
     """
     seat = state.history.next_seat
     prompt = TURN_PROMPT.format(
-        seat=seat.name,
+        dealer=state.history.dealer.name,
+        vulnerability=VULNERABILITY_TEXT[state.history.vulnerability],
         hand=state.deal[SEAT_TO_PBN[seat]],
-        auction=state.history.to_table(),
+        auction="\n".join(state.history.to_list()) or NO_CALLS,
         reasoning=own_reasoning(state, seat),
     )
     if state.proposed is not None and state.try_nb > 0:

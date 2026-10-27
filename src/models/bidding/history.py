@@ -125,6 +125,14 @@ class BiddingHistory(BaseModel):
             )
         self.calls.append(call)
 
+    def to_list(self) -> list[str]:
+        """Auction as one `SEAT: call` entry per call, in order
+        (-> list[str]), e.g. `["NORTH: P", "EAST: 1S"]`."""
+        return [
+            f"{self.seat_of(i).name}: {call}"
+            for i, call in enumerate(self.calls)
+        ]
+
     def to_table(self) -> str:
         """Auction as a table with a seat header, one round per row
         (-> str).

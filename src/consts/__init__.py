@@ -50,6 +50,14 @@ class Vulnerability(IntEnum):
     EW = 3
 
 
+# Vulnerability -> wording shown to the players.
+VULNERABILITY_TEXT = {
+    Vulnerability.NONE: "Neither side vulnerable",
+    Vulnerability.BOTH: "Both sides vulnerable",
+    Vulnerability.NS: "North-South vulnerable",
+    Vulnerability.EW: "East-West vulnerable",
+}
+
 # Card rank bounds: 2 (two) .. 14 (ace).
 MIN_RANK = 2
 MAX_RANK = 14
