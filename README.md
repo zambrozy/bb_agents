@@ -50,6 +50,8 @@ timeout = 60        # optional: seconds to wait for a reply
 max_retries = 1     # optional: retries after a failed request
 ```
 
+To play a seat with Claude Code instead of an API model, use the `claude_code:` prefix with a model alias, e.g. `model = "claude_code:sonnet"` (or `opus`, `haiku`). The seat then runs `claude -p` from `src/agents/player_claude_code.py`: it needs the `claude` CLI on `PATH`, counts against your Claude subscription, takes several seconds per bid, runs with tools disabled and with the player prompt in place of the default Claude Code one, and starts in an empty temp directory so no `CLAUDE.md` is loaded. `timeout` and `max_retries` apply to the `claude` call. API and Claude Code seats can be mixed.
+
 All four seats are required, and partners (NORTH/SOUTH, EAST/WEST) must play the same convention. API keys are read from the environment as the provider expects (e.g. `GOOGLE_API_KEY`).
 
 **From code**, `src/agents/run_bidding.py` has `run_bidding()` (returns the final `BiddingState`) and `stream_bidding()` (yields LangGraph `(mode, chunk)` pairs, `updates` and `values`). `scripts/play_bidding.py` is a thin wrapper around them.
@@ -65,6 +67,7 @@ bb_agents/
 ├── src/
 │   ├── agents/
 │   │   ├── player.py         # prompts, create_player
+│   │   ├── player_claude_code.py  # players run through `claude -p`
 │   │   ├── supervisor.py     # graph nodes, create_supervisor
 │   │   └── run_bidding.py    # run_bidding, stream_bidding
 │   ├── consts/               # enums and constants, numbered as DDS expects
@@ -76,6 +79,7 @@ bb_agents/
 ├── tests/
 │   ├── test_agents.py        # graph, prompts, config; no LLM calls
 │   ├── test_bidding.py       # Call, BiddingHistory
+│   ├── test_player_claude_code.py  # Claude Code player, CLI mocked
 │   ├── test_sampler.py
 │   └── test_smoke.py         # checks the DDS wheel
 ├── Makefile                  # `make help` lists targets

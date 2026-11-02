@@ -19,7 +19,8 @@ class PlayerConfig(BaseModel):
     """Settings of one player.
 
     Attributes:
-        model (str): Chat model id, e.g. `provider:model-name`.
+        model (str): Chat model id, e.g. `provider:model-name`, or
+            `claude_code:alias` to play through Claude Code.
         convention (CONVENTION): Bidding convention to play.
         timeout (float): Seconds to wait for a model reply.
         max_retries (int): Retries after a failed model request.
