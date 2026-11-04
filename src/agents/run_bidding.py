@@ -9,6 +9,7 @@ from agents.player import create_player
 from agents.supervisor import create_supervisor
 from consts import Seat, Vulnerability
 from models.bidding import BiddingConfig, BiddingHistory, BiddingState
+from models.sampler import Deal
 
 
 def create_players(
@@ -29,29 +30,28 @@ def create_players(
 
 
 def initial_state(
-    deal: dict[str, str],
+    deal: Deal,
     dealer: Seat,
     vulnerability: Vulnerability,
 ) -> BiddingState:
-    """Empty auction for a deal (deal: seat letter -> hand text,
-    dealer, vulnerability) -> BiddingState."""
+    """Empty auction for a deal (Deal, dealer: Seat,
+    vulnerability: Vulnerability) -> BiddingState."""
     return BiddingState(
         history=BiddingHistory(
             dealer=dealer, vulnerability=vulnerability
         ),
         deal=deal,
-        player_turn=dealer,
     )
 
 
 def run_bidding(
-    deal: dict[str, str],
+    deal: Deal,
     config: BiddingConfig,
     dealer: Seat = Seat.NORTH,
     vulnerability: Vulnerability = Vulnerability.NONE,
 ) -> BiddingState:
-    """Play a whole auction (deal: seat letter -> hand text,
-    config, dealer, vulnerability) -> final BiddingState."""
+    """Play a whole auction (Deal, BiddingConfig, dealer: Seat,
+    vulnerability: Vulnerability) -> final BiddingState."""
     result = create_supervisor().invoke(
         initial_state(deal, dealer, vulnerability),
         context={"players": create_players(config)},
@@ -61,7 +61,7 @@ def run_bidding(
 
 
 def stream_bidding(
-    deal: dict[str, str],
+    deal: Deal,
     config: BiddingConfig,
     dealer: Seat = Seat.NORTH,
     vulnerability: Vulnerability = Vulnerability.NONE,

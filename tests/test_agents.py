@@ -8,7 +8,6 @@ from langgraph.graph import END
 
 import agents.player as player_module
 import agents.run_bidding as run_module
-from agents.player import table_roles
 from agents.supervisor import (
     after_route_bid_turn,
     build_turn_prompt,
@@ -23,8 +22,9 @@ from models.bidding import (
     Call,
     PlayerReply,
 )
+from sampler import DealSampler
 
-DEAL = {seat: f"hand of {seat}" for seat in "NESW"}
+DEAL = DealSampler(seed=1).sample_deal()
 
 
 def _state(
@@ -38,8 +38,7 @@ def _state(
     for text in calls:
         history.add(Call.from_str(text))
     return BiddingState(
-        history=history, deal=DEAL, player_turn=history.next_seat,
-        **fields,
+        history=history, deal=DEAL, **fields,
     )
 
 
@@ -59,10 +58,14 @@ def _config(**conventions: str) -> dict:
     }}
 
 
-def test_table_roles():
+def test_seat_partner_and_opponents():
     """Partner sits across; opponents are the other partnership."""
-    assert table_roles("NORTH") == ("SOUTH", "EAST and WEST")
-    assert table_roles("WEST") == ("EAST", "NORTH and SOUTH")
+    assert Seat.NORTH.partner == Seat.SOUTH
+    assert Seat.WEST.partner == Seat.EAST
+    assert Seat.NORTH.opponents == (Seat.EAST, Seat.WEST)
+    assert Seat.EAST.opponents == (Seat.NORTH, Seat.SOUTH)
+    assert Seat.EAST.is_same_side(Seat.WEST)
+    assert not Seat.EAST.is_same_side(Seat.SOUTH)
 
 
 def test_turn_prompt_has_deal_facts_and_auction_list():
@@ -75,7 +78,8 @@ def test_turn_prompt_has_deal_facts_and_auction_list():
     prompt = build_turn_prompt(state)
     assert "Dealer: EAST" in prompt
     assert "Vulnerability: North-South vulnerable" in prompt
-    assert "hand of W" in prompt  # West is next after East, South
+    # West is next after East, South
+    assert DEAL.hands[Seat.WEST].to_str() in prompt
     assert "EAST: 1S\nSOUTH: X" in prompt
     assert "Your seat" not in prompt
     assert "REJECTED" not in prompt

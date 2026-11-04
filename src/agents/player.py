@@ -9,8 +9,8 @@ from consts import (
     CONVENTION,
     DEFAULT_MAX_RETRIES,
     DEFAULT_TIMEOUT,
-    PARTNER_SEATS,
     SEAT_NAMES,
+    Seat,
 )
 
 system_prompt = """
@@ -46,18 +46,6 @@ NO_REASONING = "(none yet)"
 NO_CALLS = "(no calls yet)"
 
 
-def table_roles(seat: SEAT_NAMES) -> tuple[str, str]:
-    """Partner and opponents of a seat (seat: seat name)
-    -> (partner name, opponent names joined by " and ")."""
-    for pair in PARTNER_SEATS:
-        if seat in pair:
-            partner = pair[0] if pair[1] == seat else pair[1]
-        else:
-            opponents = " and ".join(pair)
-
-    return partner, opponents
-
-
 def create_player(
     model_name: str,
     seat: SEAT_NAMES,
@@ -69,11 +57,11 @@ def create_player(
     `claude_code:alias` for Claude Code; seat, convention,
     timeout: seconds per reply, max_retries: int)
     -> runnable taking {"turn": str} and returning a PlayerReply."""
-    partner, opponents = table_roles(seat)
+    table_seat = Seat[seat]
     system = system_prompt.format(
         seat=seat,
-        partner=partner,
-        opponents=opponents,
+        partner=table_seat.partner.name,
+        opponents=" and ".join(s.name for s in table_seat.opponents),
         convention=convention,
     )
     if model_name.startswith(CLAUDE_CODE_PREFIX):

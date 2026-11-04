@@ -3,9 +3,9 @@ from pydantic import BaseModel
 
 from operator import add
 from typing import TypedDict, Annotated
-from copy import copy
 
 from models.bidding import BiddingHistory, PlayerReply, Call
+from models.sampler import Deal
 from consts import Seat
 
 
@@ -21,18 +21,6 @@ def update_history(
     return left_copy
 
 
-def update_player(
-        left: Seat,
-        right: str
-) -> Seat:
-    """Reducer: the seat after `left`; `right` is ignored
-    (Seat, str) -> Seat."""
-
-    next_seat = (left + 1) % len(Seat)
-
-    return Seat(next_seat)
-
-
 class BiddingState(BaseModel):
     """State of the bidding graph.
 
@@ -43,8 +31,8 @@ class BiddingState(BaseModel):
         max_try_nb (int): Invalid replies before a forced pass.
         reasoning_history (list[PlayerReply]): Accepted replies, one
             per call in `history`.
-        deal (dict[str, str]): Seat letter -> hand text.
-        player_turn (Seat): Seat on turn; advances on update.
+        deal (Deal): The hands being bid. The seat on turn is
+            `history.next_seat`.
     """
 
     history: Annotated[BiddingHistory, update_history]
@@ -52,8 +40,19 @@ class BiddingState(BaseModel):
     try_nb: int = 0
     max_try_nb: int = 4
     reasoning_history: Annotated[list[PlayerReply], add] = []
-    deal: dict[str, str]
-    player_turn: Annotated[Seat, update_player]
+    deal: Deal
+
+    def reasoning_of(self, seat: Seat) -> list[tuple[Call, PlayerReply]]:
+        """Accepted calls of `seat` with their replies, in order
+        (Seat) -> list[tuple[Call, PlayerReply]].
+
+        reasoning_history[i] belongs to call number i of the history.
+        """
+        return [
+            (self.history.calls[i], reply)
+            for i, reply in enumerate(self.reasoning_history)
+            if self.history.seat_of(i) == seat
+        ]
 
 
 class Context(TypedDict):

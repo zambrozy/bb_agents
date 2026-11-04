@@ -10,25 +10,12 @@ from agents.player import (
     REJECTED_PROMPT,
     TURN_PROMPT,
 )
-from consts import SEAT_TO_PBN, VULNERABILITY_TEXT, Seat
-from sampler import DealSampler
+from consts import VULNERABILITY_TEXT, Seat
 from models.bidding import (BiddingState,
                             Context,
                             PlayerReply,
                             BiddingHistory,
                             Call)
-
-
-def sample_deal(state: BiddingState) -> dict[str, str]:
-    """Sample a random deal (BiddingState) -> {"deal": dict[str, str]}.
-
-    The deal maps a seat letter (N, E, S, W) to its hand text.
-    """
-    sampler = DealSampler()
-    deal = sampler.sample_deal()
-    deal = sampler.dict_deal_format(deal)
-
-    return {"deal": deal}
 
 
 def route_bid_turn(state: BiddingState) -> dict | None:
@@ -48,7 +35,6 @@ def route_bid_turn(state: BiddingState) -> dict | None:
                     "reasoning_history": [state.proposed],
                     "try_nb": 0,
                     "proposed": None,
-                    "player_turn": "next"
             }
         else:
             try_nb = state.try_nb + 1
@@ -63,7 +49,6 @@ def route_bid_turn(state: BiddingState) -> dict | None:
                     "reasoning_history": [forced],
                     "try_nb": 0,
                     "proposed": None,
-                    "player_turn": "next"
                 }
 
             else:
@@ -90,7 +75,7 @@ def validate_proposed_bid(
     """Parse and check a proposal (BiddingHistory, PlayerReply)
     -> Call if it is valid and legal, else None."""
     try:
-        call = Call.from_str(proposed.call)
+        call = proposed.to_call()
 
         if history.is_legal(call):
             return call
@@ -102,14 +87,10 @@ def validate_proposed_bid(
 
     
 def own_reasoning(state: BiddingState, seat: Seat) -> str:
-    """Earlier reasoning of `seat` as text (BiddingState, Seat) -> str.
-
-    reasoning_history[i] belongs to the call number i of the history.
-    """
+    """Earlier reasoning of `seat` as text (BiddingState, Seat) -> str."""
     lines = [
-        f"- Your call {state.history.calls[i]}: {reply.reasoning}"
-        for i, reply in enumerate(state.reasoning_history)
-        if state.history.seat_of(i) == seat
+        f"- Your call {call}: {reply.reasoning}"
+        for call, reply in state.reasoning_of(seat)
     ]
     return "\n".join(lines) or NO_REASONING
 
@@ -125,7 +106,7 @@ def build_turn_prompt(state: BiddingState) -> str:
     prompt = TURN_PROMPT.format(
         dealer=state.history.dealer.name,
         vulnerability=VULNERABILITY_TEXT[state.history.vulnerability],
-        hand=state.deal[SEAT_TO_PBN[seat]],
+        hand=state.deal.hands[seat].to_str(),
         auction="\n".join(state.history.to_list()) or NO_CALLS,
         reasoning=own_reasoning(state, seat),
     )

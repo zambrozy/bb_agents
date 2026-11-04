@@ -31,6 +31,21 @@ class Seat(IntEnum):
     SOUTH = 2
     WEST = 3
 
+    @property
+    def partner(self) -> "Seat":
+        """Seat across the table (Seat)."""
+        return Seat((self + 2) % len(Seat))
+
+    @property
+    def opponents(self) -> tuple["Seat", "Seat"]:
+        """The two seats of the other side, in seat order
+        (tuple[Seat, Seat])."""
+        return tuple(s for s in Seat if not self.is_same_side(s))
+
+    def is_same_side(self, other: "Seat") -> bool:
+        """Whether `other` is this seat or its partner (Seat) -> bool."""
+        return self % 2 == other % 2
+
 
 class CallType(StrEnum):
     """Kind of call made during the bidding."""
@@ -69,10 +84,21 @@ RANK_TO_CHAR = {
     9: "9", 10: "T", 11: "J", 12: "Q", 13: "K", 14: "A",
 }
 
+# PBN character -> rank integer (inverse of RANK_TO_CHAR).
+CHAR_TO_RANK = {char: rank for rank, char in RANK_TO_CHAR.items()}
+
 # Seat -> PBN seat letter.
 SEAT_TO_PBN = {
     Seat.NORTH: "N", Seat.EAST: "E", Seat.SOUTH: "S", Seat.WEST: "W",
 }
+
+# PBN seat letter -> Seat (inverse of SEAT_TO_PBN).
+PBN_TO_SEAT = {letter: seat for seat, letter in SEAT_TO_PBN.items()}
+
+# PBN hand notation: suit separator ('AKQ.T98.J2.5432').
+PBN_SUIT_SEP = "."
+# Readable hand notation: shown in place of the ranks of a void suit.
+VOID_MARK = "-"
 
 # Strain -> human-readable contract label.
 STRAIN_TO_CHAR = {
@@ -88,6 +114,9 @@ SUIT_TO_SYMBOL = {
     Suit.SPADES: "♠", Suit.HEARTS: "♥",
     Suit.DIAMONDS: "♦", Suit.CLUBS: "♣",
 }
+
+# Unicode suit symbol -> Suit (inverse of SUIT_TO_SYMBOL).
+SYMBOL_TO_SUIT = {symbol: suit for suit, symbol in SUIT_TO_SYMBOL.items()}
 
 # Auction table rendering: column width and mark for "no call yet".
 TABLE_COL_WIDTH = 4
@@ -112,9 +141,6 @@ SEAT_NAMES = Literal["NORTH", "EAST", "SOUTH", "WEST"]
 CONVENTION = Literal["SAYC", "2/1 Force Game"]
 
 CALL_PATTERN = r"^(P|X|XX|[1-7](C|D|H|S|NT))$"
-
-# Seat names of the two partnerships.
-PARTNER_SEATS = (("NORTH", "SOUTH"), ("EAST", "WEST"))
 
 # Model request limits: seconds to wait for a reply, retries after a
 # failed request.

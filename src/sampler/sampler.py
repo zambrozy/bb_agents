@@ -4,15 +4,7 @@ import random
 
 import dds3
 
-from consts import (
-    SEAT_TO_PBN,
-    STRAIN_TO_CHAR,
-    SUIT_TO_SYMBOL,
-    Seat,
-    Strain,
-    Suit,
-    Vulnerability,
-)
+from consts import Vulnerability
 from models.sampler.analysis import DealAnalysis
 from models.sampler.cards import STANDARD_DECK, Deal
 
@@ -50,19 +42,8 @@ class DealSampler:
             DealAnalysis: Per-strain/seat trick counts and par.
         """
         table = dds3.calc_dd_table({"cards": deal.to_bitmask()})
-        res = table["res_table"]
-        tricks = {
-            strain: {
-                seat: res[int(strain)][int(seat)] for seat in Seat
-            }
-            for strain in Strain
-        }
-        par_result = dds3.par(table, vulnerable=int(vulnerable))
-        return DealAnalysis(
-            tricks=tricks,
-            par_score=par_result["par_score"],
-            par_contracts=par_result["par_contracts_string"],
-        )
+        par = dds3.par(table, vulnerable=int(vulnerable))
+        return DealAnalysis.from_dds(table, par)
 
     def sample_and_analyze(
         self,
@@ -80,75 +61,6 @@ class DealSampler:
         return deal, self.analyze(deal, vulnerable=vulnerable)
 
     @staticmethod
-    def format_deal(deal: Deal) -> str:
-        """Render a deal as a readable per-seat listing.
-
-        Args:
-            deal (Deal): The deal to render.
-
-        Returns:
-            str: One line per seat, e.g. 'N  ♠ AKQ  ♥ 98 ...'.
-        """
-        lines = []
-        for seat in Seat:
-            segments = deal.hands[seat].pbn_segment().split(".")
-            suits = "  ".join(
-                f"{SUIT_TO_SYMBOL[suit]} {ranks or '-'}"
-                for suit, ranks in zip(Suit, segments)
-            )
-            lines.append(f"{SEAT_TO_PBN[seat]}  {suits}")
-        return "\n".join(lines)
-
-    @staticmethod
-    def dict_deal_format(deal: Deal) -> dict:
-        """Represents a deal as a seat: hand dictionary.
-
-        Args:
-            deal (Deal): The deal to render.
-
-        Returns:
-            dict: key: on of (N, E, S, W),
-            value: string hand representation.
-        """
-        deal_dict = {}
-        for seat in Seat:
-            segments = deal.hands[seat].pbn_segment().split(".")
-            suits = "  ".join(
-                f"{SUIT_TO_SYMBOL[suit]} {ranks or '-'}"
-                for suit, ranks in zip(Suit, segments)
-            )
-            deal_dict[SEAT_TO_PBN[seat]] = suits
-
-        return deal_dict
-
-    @staticmethod
-    def format_analysis(analysis: DealAnalysis) -> str:
-        """Render double-dummy tricks and par as a table.
-
-        Args:
-            analysis (DealAnalysis): The analysis to render.
-
-        Returns:
-            str: A strain-by-seat trick table plus par lines.
-        """
-        header = f"{'':>6}" + "".join(
-            f"{SEAT_TO_PBN[seat]:>4}" for seat in Seat
-        )
-        rows = [header]
-        for strain in Strain:
-            cells = "".join(
-                f"{analysis.tricks_for(strain, seat):>4}"
-                for seat in Seat
-            )
-            rows.append(f"{STRAIN_TO_CHAR[strain]:>4}  {cells}")
-
-        return (
-            "\n".join(rows)
-            + f"\n\nPar score:    {analysis.par_score}"
-            + f"\nPar contract: {analysis.par_contracts}"
-        )
-
-    @staticmethod
     def format_report(deal: Deal, analysis: DealAnalysis) -> str:
         """Combine PBN, hand layout, and analysis into one report.
 
@@ -161,6 +73,6 @@ class DealSampler:
         """
         return (
             f"PBN: {deal.to_pbn()}\n\n"
-            f"{DealSampler.format_deal(deal)}\n\n"
-            f"{DealSampler.format_analysis(analysis)}"
+            f"{deal.format()}\n\n"
+            f"{analysis.format()}"
         )

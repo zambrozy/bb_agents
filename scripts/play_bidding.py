@@ -34,11 +34,10 @@ def main() -> None:
     args = parser.parse_args()
 
     sampler = DealSampler(args.seed)
-    deal = sampler.dict_deal_format(sampler.sample_deal())
+    deal = sampler.sample_deal()
     config = BiddingConfig.load(args.config)
 
-    for seat, hand in deal.items():
-        print(f"{seat}: {hand}")
+    print(deal.format())
 
     state = None
     for mode, chunk in stream_bidding(deal, config):

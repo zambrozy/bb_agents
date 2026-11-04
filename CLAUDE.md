@@ -8,6 +8,7 @@ This workspace provides tools and an agent environment for project development.
 - **Pydantic**: Use Pydantic models for structured data handling where appropriate. Write them inside the `models/` directory.
 - **Consts**: Define all constants in a dedicated module for easy management and consistency.
 - **Editing**: Avoid to write lines longer than 80 characters to maintain readability.
+- **Modularity**: if part of a project is a closed part, do not hesitate to create additional models and consts directories and files, respectively
 
 ## Project Structure
 - read README.md for project description 

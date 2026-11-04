@@ -25,7 +25,19 @@ deal, analysis = sampler.sample_and_analyze(Vulnerability.NONE)
 print(DealSampler.format_report(deal, analysis))
 ```
 
-The report contains the PBN string, the hands per seat, a strain-by-seat table of double-dummy tricks, and the par score and contract. `sample_deal()`, `analyze()`, `format_deal()` and `format_analysis()` can also be used separately.
+The report contains the PBN string, the hands per seat, a strain-by-seat table of double-dummy tricks, and the par score and contract. `sample_deal()` and `analyze()` can also be used separately, and the models render themselves: `Deal.format()`, `Deal.to_dict()`, `Hand.to_str()`, `DealAnalysis.format()`.
+
+Hands and deals can also be parsed back:
+
+```python
+from models.sampler import Deal, Hand
+
+hand = Hand.from_str("♠ AKQ  ♥ T98  ♦ J2  ♣ 5432")   # readable form
+hand = Hand.from_str("AKQ.T98.J2.5432")              # PBN form
+deal = Deal.from_dict({"N": "...", "E": "...", "S": "...", "W": "..."})
+```
+
+`Deal.from_dict` is the inverse of `Deal.to_dict`. `DealAnalysis.from_dds(table, par)` builds an analysis from raw `dds3.calc_dd_table` / `dds3.par` output. Parsing raises `ValueError` for malformed text, a hand without 13 distinct cards, a missing seat, or a card held by two seats.
 
 ## Bidding
 
@@ -36,7 +48,7 @@ The report contains the PBN string, the hands per seat, a strain-by-seat table o
 - `player_bid` — asks the player on turn for a call. The player sees the dealer, the vulnerability, its own hand, the auction as a list (`NORTH: P`, `EAST: 1S`, ...) and only its own earlier reasoning. The system prompt names its seat, partner, opponents and convention.
 - `route_bid_turn` — validates the proposed call against the auction. A legal call is added to the history. An illegal one is sent back with the rejected call and its reasoning, up to `max_try_nb` times (4 by default); after that the player is forced to pass.
 
-After `route_bid_turn` the graph ends once the auction is over, otherwise the next player bids. Deal sampling is not part of the graph: the deal is given in the initial state.
+After `route_bid_turn` the graph ends once the auction is over, otherwise the next player bids. Deal sampling is not part of the graph: the deal is given in the initial state as a `Deal`, and the seat on turn is always `history.next_seat`.
 
 **Players.** Each seat is a chat model with structured output (`PlayerReply`: `reasoning` and `call`), built by `create_player()` in `src/agents/player.py` with LangChain's `init_chat_model`. Players are passed to the graph through the runtime context.
 
@@ -54,7 +66,7 @@ To play a seat with Claude Code instead of an API model, use the `claude_code:` 
 
 All four seats are required, and partners (NORTH/SOUTH, EAST/WEST) must play the same convention. API keys are read from the environment as the provider expects (e.g. `GOOGLE_API_KEY`).
 
-**From code**, `src/agents/run_bidding.py` has `run_bidding()` (returns the final `BiddingState`) and `stream_bidding()` (yields LangGraph `(mode, chunk)` pairs, `updates` and `values`). `scripts/play_bidding.py` is a thin wrapper around them.
+**From code**, `src/agents/run_bidding.py` has `run_bidding(deal, config)` (takes a `Deal`, returns the final `BiddingState`) and `stream_bidding()` (yields LangGraph `(mode, chunk)` pairs, `updates` and `values`). `scripts/play_bidding.py` is a thin wrapper around them.
 
 ## Project layout
 

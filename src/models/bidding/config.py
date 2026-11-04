@@ -10,8 +10,8 @@ from consts import (
     CONVENTION,
     DEFAULT_MAX_RETRIES,
     DEFAULT_TIMEOUT,
-    PARTNER_SEATS,
     SEAT_NAMES,
+    Seat,
 )
 
 
@@ -48,7 +48,8 @@ class BiddingConfig(BaseModel):
         missing = set(get_args(SEAT_NAMES)) - set(self.players)
         if missing:
             raise ValueError(f"missing players: {sorted(missing)}")
-        for first, second in PARTNER_SEATS:
+        for seat in Seat:
+            first, second = seat.name, seat.partner.name
             if (
                 self.players[first].convention
                 != self.players[second].convention

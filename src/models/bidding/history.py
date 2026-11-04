@@ -19,11 +19,6 @@ from models.bidding.call import Call
 from models.bidding.contract import Contract
 
 
-def _partners(a: Seat, b: Seat) -> bool:
-    """Whether seats are on one side (a: Seat, b: Seat) -> bool."""
-    return a % 2 == b % 2
-
-
 class BiddingHistory(BaseModel):
     """Ordered calls of an auction, starting from the dealer.
 
@@ -95,7 +90,9 @@ class BiddingHistory(BaseModel):
                 else CallType.DOUBLE
             )
             # That call must have been made by an opponent.
-            opponent = not _partners(self.seat_of(last), self.next_seat)
+            opponent = not self.seat_of(last).is_same_side(
+                self.next_seat
+            )
             return opponent and self.calls[last].kind == wanted
 
     def legal_calls(self) -> list[Call]:
@@ -164,7 +161,7 @@ class BiddingHistory(BaseModel):
             if (
                 call.is_bid
                 and call.strain == final.strain
-                and _partners(self.seat_of(i), bidder)
+                and self.seat_of(i).is_same_side(bidder)
             ):
                 declarer = self.seat_of(i)
                 break
