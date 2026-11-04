@@ -9,7 +9,7 @@ from agents.player import create_player
 from agents.supervisor import create_supervisor
 from consts import Seat, Vulnerability
 from models.bidding import BiddingConfig, BiddingHistory, BiddingState
-from models.sampler import Deal
+from models.cards import Deal
 
 
 def create_players(

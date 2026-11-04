@@ -30,7 +30,7 @@ The report contains the PBN string, the hands per seat, a strain-by-seat table o
 Hands and deals can also be parsed back:
 
 ```python
-from models.sampler import Deal, Hand
+from models.cards import Deal, Hand
 
 hand = Hand.from_str("♠ AKQ  ♥ T98  ♦ J2  ♣ 5432")   # readable form
 hand = Hand.from_str("AKQ.T98.J2.5432")              # PBN form
@@ -86,13 +86,16 @@ bb_agents/
 │   ├── models/
 │   │   ├── bidding/          # auction rules (Call, BiddingHistory,
 │   │   │                     # Contract), graph state, config
-│   │   └── sampler/          # Card, Hand, Deal, DealAnalysis
+│   │   ├── cards/            # Card, Hand, Deal, Deck (shared by
+│   │   │                     # the sampler and the bidding)
+│   │   └── sampler/          # DealAnalysis
 │   └── sampler/              # DealSampler: dealing, DDS analysis, reports
 ├── tests/
 │   ├── test_agents.py        # graph, prompts, config; no LLM calls
 │   ├── test_bidding.py       # Call, BiddingHistory
 │   ├── test_player_claude_code.py  # Claude Code player, CLI mocked
-│   ├── test_sampler.py
+│   ├── test_cards.py         # Card, Hand, Deal, Deck; parsing
+│   ├── test_sampler.py       # sampling, DDS analysis, reports
 │   └── test_smoke.py         # checks the DDS wheel
 ├── Makefile                  # `make help` lists targets
 └── pyproject.toml

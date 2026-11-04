@@ -5,7 +5,7 @@ from operator import add
 from typing import TypedDict, Annotated
 
 from models.bidding import BiddingHistory, PlayerReply, Call
-from models.sampler import Deal
+from models.cards import Deal
 from consts import Seat
 
 

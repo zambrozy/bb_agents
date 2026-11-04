@@ -5,8 +5,8 @@ import random
 import dds3
 
 from consts import Vulnerability
-from models.sampler.analysis import DealAnalysis
-from models.sampler.cards import STANDARD_DECK, Deal
+from models.cards import STANDARD_DECK, Deal
+from models.sampler import DealAnalysis
 
 
 class DealSampler:
