@@ -5,7 +5,12 @@ description = "Bridge bidding agents training"
 requires-python = ">=3.14"
 dependencies = [
      "dds3",
+     "langgraph>=1.2.20",
+     "langchain>=1.4.9",
      "pydantic>=2.13.4",
+     "langchain-google-genai>=4.4.3",
+     "fastapi>=0.162.2",
+     "uvicorn>=0.54.0",
 ]
 
 [dependency-groups]
