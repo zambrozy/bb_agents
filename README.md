@@ -12,6 +12,7 @@ make sample    # print a random deal with its double-dummy analysis
 make sample SEED=42   # same, but reproducible
 make bid       # play one auction with LLM players (needs an API key)
 make bid ARGS="--seed 42 --config config/bidding.toml"
+make serve     # web UI on http://127.0.0.1:8000
 ```
 
 ## Using the sampler
@@ -68,6 +69,25 @@ All four seats are required, and partners (NORTH/SOUTH, EAST/WEST) must play the
 
 **From code**, `src/agents/run_bidding.py` has `run_bidding(deal, config)` (takes a `Deal`, returns the final `BiddingState`) and `stream_bidding()` (yields LangGraph `(mode, chunk)` pairs, `updates` and `values`). `scripts/play_bidding.py` is a thin wrapper around them.
 
+## Web UI
+
+`make serve` starts a FastAPI service (`src/web/`) with a small frontend:
+sample a deal (seed, dealer, vulnerability), start the bidding and watch
+it live — each proposal with its reasoning, rejected calls, the auction
+grid — then the final contract against the double-dummy table and par.
+Players come from `config/bidding.toml`; set `BB_AGENTS_CONFIG` to use
+another file. *Stop* ends the auction after the current model call.
+
+API (interactive docs at `/docs`):
+
+- `POST /api/deals` — body `{seed?, dealer, vulnerability}`; samples and
+  analyzes a deal, returns its id, hands and DD analysis.
+- `GET /api/deals/{id}` — a stored deal (kept in memory, latest 200).
+- `GET /api/deals/{id}/bidding` — plays the auction as server-sent
+  events: `proposal`, `accepted`, `rejected`, then `done` or `error`
+  (models in `src/models/web/events.py`).
+- `GET /api/config` — model and convention per seat.
+
 ## Project layout
 
 ```text
@@ -88,14 +108,18 @@ bb_agents/
 │   │   │                     # Contract), graph state, config
 │   │   ├── cards/            # Card, Hand, Deal, Deck (shared by
 │   │   │                     # the sampler and the bidding)
-│   │   └── sampler/          # DealAnalysis
-│   └── sampler/              # DealSampler: dealing, DDS analysis, reports
+│   │   ├── sampler/          # DealAnalysis
+│   │   └── web/              # API schemas and bidding stream events
+│   ├── sampler/              # DealSampler: dealing, DDS analysis, reports
+│   └── web/                  # FastAPI app, deal store, SSE events
+│       └── static/           # frontend: index.html, app.js, style.css
 ├── tests/
 │   ├── test_agents.py        # graph, prompts, config; no LLM calls
 │   ├── test_bidding.py       # Call, BiddingHistory
 │   ├── test_player_claude_code.py  # Claude Code player, CLI mocked
 │   ├── test_cards.py         # Card, Hand, Deal, Deck; parsing
 │   ├── test_sampler.py       # sampling, DDS analysis, reports
+│   ├── test_web.py           # API and bidding stream; players scripted
 │   └── test_smoke.py         # checks the DDS wheel
 ├── Makefile                  # `make help` lists targets
 └── pyproject.toml
@@ -117,4 +141,4 @@ make install
 
 This clones the DDS repo (pinned to `DDS_REF`, default `v3.0.0`) into `.dds-src/`, builds the `dds3` wheel via `bazel build -c opt //python:dds3_wheel_dist`, copies it into `vendor/`, and then runs `uv sync` so the wheel is installed into the project's virtual environment. The pinned DDS revision is configurable on the command line, e.g. `make build-dds DDS_REF=main`. Both `.dds-src/` and `vendor/` are gitignored — bumping `DDS_REF` and re-running `make install` is enough to refresh.
 
-Other targets: `make sync` (re-run `uv sync` only), `make test` (run pytest), `make sample` (print a random analyzed deal), `make verify-dds` (run DDS's upstream tests), `make clean-dds` (drop DDS source + vendor wheel), `make clean` (also drops `.venv/` and `uv.lock`).
+Other targets: `make sync` (re-run `uv sync` only), `make test` (run pytest), `make sample` (print a random analyzed deal), `make serve` (start the web UI), `make verify-dds` (run DDS's upstream tests), `make clean-dds` (drop DDS source + vendor wheel), `make clean` (also drops `.venv/` and `uv.lock`).
