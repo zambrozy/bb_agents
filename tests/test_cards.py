@@ -77,3 +77,10 @@ def test_deal_from_dict_rejects_missing_seat_and_shared_card():
         Deal.from_dict({k: v for k, v in data.items() if k != "W"})
     with pytest.raises(ValueError):
         Deal.from_dict({**data, "W": data["N"]})
+
+
+def test_hand_hcp_counts_honours():
+    """A=4, K=3, Q=2, J=1; a deal holds 40 points in total."""
+    assert Hand.from_str("AKQJ.AKQ.A.T9876").hcp == 4 + 3 + 2 + 1 + 9 + 4
+    deal = _deal(17)
+    assert sum(deal.hands[seat].hcp for seat in Seat) == 40
