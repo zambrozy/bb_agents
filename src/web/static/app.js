@@ -98,7 +98,7 @@ function renderHand(seat) {
   hand.suits.forEach((ranks, i) => {
     const row = el("div", "suit-row");
     row.append(el("span", SUITS[i].cls, SUITS[i].symbol + " "));
-    row.append(ranks ? ranks.replaceAll("T", "10") : "—");
+    row.append(ranks || "—");
     box.append(row);
   });
   if (seat === thinking) box.append(el("div", "thinking", "thinking…"));
