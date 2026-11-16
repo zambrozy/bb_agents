@@ -4,6 +4,7 @@ from pydantic import BaseModel, field_validator
 
 from consts import (
     CARDS_PER_HAND,
+    HCP_BY_RANK,
     PBN_SUIT_SEP,
     RANK_TO_CHAR,
     SUIT_TO_SYMBOL,
@@ -53,6 +54,11 @@ class Hand(BaseModel):
         """Return the held ranks in `suit` as PBN chars, e.g. 'AKT'
         (str; empty for a void)."""
         return "".join(RANK_TO_CHAR[r] for r in self.suit_ranks(suit))
+
+    @property
+    def hcp(self) -> int:
+        """High card points: A=4, K=3, Q=2, J=1 (int)."""
+        return sum(HCP_BY_RANK.get(c.rank, 0) for c in self.cards)
 
     def suit_bitmask(self, suit: Suit) -> int:
         """Return the DDS bitmask of held ranks in `suit` (int)."""

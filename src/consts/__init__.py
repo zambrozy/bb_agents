@@ -78,6 +78,12 @@ MIN_RANK = 2
 MAX_RANK = 14
 CARDS_PER_HAND = 13
 
+# High card points per rank: ace 4, king 3, queen 2, jack 1.
+HCP_BY_RANK = {14: 4, 13: 3, 12: 2, 11: 1}
+
+# Tricks the declarer needs on top of the contract level (the book).
+BOOK_TRICKS = 6
+
 # Rank integer -> PBN character.
 RANK_TO_CHAR = {
     2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8",
@@ -138,6 +144,7 @@ BID_STRAIN_ORDER = (
 )
 
 SEAT_NAMES = Literal["NORTH", "EAST", "SOUTH", "WEST"]
+VULNERABILITY_NAMES = Literal["NONE", "BOTH", "NS", "EW"]
 CONVENTION = Literal["SAYC", "2/1 Force Game"]
 
 CALL_PATTERN = r"^(P|X|XX|[1-7](C|D|H|S|NT))$"
