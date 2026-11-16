@@ -26,7 +26,7 @@ from web.consts import (
 from web.deals import DealStore, new_deal
 
 app = FastAPI(title=APP_TITLE)
-#app.mount(STATIC_URL, StaticFiles(directory=STATIC_DIR), name="static")
+app.mount(STATIC_URL, StaticFiles(directory=STATIC_DIR), name="static")
 store = DealStore()
 
 

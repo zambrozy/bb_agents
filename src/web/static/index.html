@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bidding Table</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <h1>Bidding table</h1>
+    <form id="deal-form">
+      <label>Seed
+        <input id="seed" type="number" placeholder="random">
+      </label>
+      <label>Dealer
+        <select id="dealer">
+          <option>NORTH</option>
+          <option>EAST</option>
+          <option>SOUTH</option>
+          <option>WEST</option>
+        </select>
+      </label>
+      <label>Vulnerability
+        <select id="vulnerability">
+          <option value="NONE">None</option>
+          <option value="NS">N-S</option>
+          <option value="EW">E-W</option>
+          <option value="BOTH">Both</option>
+        </select>
+      </label>
+      <button type="submit" id="new-deal">New deal</button>
+      <button type="button" id="start" disabled>Start bidding</button>
+      <button type="button" id="stop" disabled>Stop</button>
+    </form>
+    <p id="status">Sample a deal to start.</p>
+  </header>
+
+  <main>
+    <section id="table">
+      <div class="hand" id="hand-NORTH"></div>
+      <div class="hand" id="hand-WEST"></div>
+      <div id="center">
+        <table id="auction">
+          <thead>
+            <tr><th>N</th><th>E</th><th>S</th><th>W</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="hand" id="hand-EAST"></div>
+      <div class="hand" id="hand-SOUTH"></div>
+    </section>
+
+    <section id="feed-panel">
+      <h2>Players' reasoning</h2>
+      <ol id="feed"></ol>
+    </section>
+
+    <section id="analysis">
+      <h2>Double-dummy analysis</h2>
+      <div id="result"></div>
+      <table id="dd"></table>
+      <div id="par"></div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
