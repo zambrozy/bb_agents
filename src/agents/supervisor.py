@@ -16,6 +16,7 @@ from models.bidding import (BiddingState,
                             PlayerReply,
                             BiddingHistory,
                             Call)
+from tracing import trace_decision
 
 
 def route_bid_turn(state: BiddingState) -> dict | None:
@@ -118,12 +119,13 @@ def build_turn_prompt(state: BiddingState) -> str:
     return prompt
 
 
+@trace_decision
 def player_bid(
     state: BiddingState,
     runtime: Runtime[Context]
 ) -> dict[str, PlayerReply]:
     """Ask the player on turn for a call (BiddingState, Runtime)
-    -> {"proposed": PlayerReply}."""
+    -> {"proposed": PlayerReply}. Traced as a `bid_decision`."""
     player = runtime.context["players"][state.history.next_seat]
     reply = player.invoke({"turn": build_turn_prompt(state)})
 

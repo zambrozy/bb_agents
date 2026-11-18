@@ -13,8 +13,10 @@ from langchain_core.runnables import Runnable, RunnableLambda
 
 from consts import CLAUDE_BIN
 from models.bidding.call import PlayerReply
+from tracing import trace_llm_call
 
 
+@trace_llm_call
 def run_claude(cmd: list[str], timeout: float) -> dict:
     """Run a `claude -p` command (cmd: list[str], timeout: seconds)
     -> parsed JSON printed by the CLI.

@@ -10,6 +10,7 @@ from agents.supervisor import create_supervisor
 from consts import Seat, Vulnerability
 from models.bidding import BiddingConfig, BiddingHistory, BiddingState
 from models.cards import Deal
+from tracing import trace_auction
 
 
 def create_players(
@@ -51,15 +52,21 @@ def run_bidding(
     vulnerability: Vulnerability = Vulnerability.NONE,
 ) -> BiddingState:
     """Play a whole auction (Deal, BiddingConfig, dealer: Seat,
-    vulnerability: Vulnerability) -> final BiddingState."""
-    result = create_supervisor().invoke(
-        initial_state(deal, dealer, vulnerability),
-        context={"players": create_players(config)},
-    )
+    vulnerability: Vulnerability) -> final BiddingState.
+
+    Consumes stream_bidding, so it is traced the same way.
+    """
+    result = None
+    for mode, chunk in stream_bidding(
+        deal, config, dealer, vulnerability
+    ):
+        if mode == "values":
+            result = chunk
 
     return BiddingState.model_validate(result)
 
 
+@trace_auction
 def stream_bidding(
     deal: Deal,
     config: BiddingConfig,
@@ -71,7 +78,7 @@ def stream_bidding(
 
     mode "updates": chunk is {node name: state update}.
     mode "values": chunk is the full state after a step; the last
-    one is the final state.
+    one is the final state. Traced as one `auction` trace.
     """
     yield from create_supervisor().stream(
         initial_state(deal, dealer, vulnerability),

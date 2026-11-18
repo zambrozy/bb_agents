@@ -4,7 +4,8 @@ Run from the project root: uv run uvicorn web.app:app --reload
 """
 
 import os
-from collections.abc import Iterator
+from collections.abc import AsyncIterator, Iterator
+from contextlib import asynccontextmanager
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException
@@ -24,8 +25,18 @@ from web.consts import (
     STATIC_URL,
 )
 from web.deals import DealStore, new_deal
+from tracing import setup_tracing
 
-app = FastAPI(title=APP_TITLE)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """Server start-up: configure MLflow tracing (FastAPI)
+    -> async iterator yielding once while the server runs."""
+    setup_tracing()
+    yield
+
+
+app = FastAPI(title=APP_TITLE, lifespan=lifespan)
 app.mount(STATIC_URL, StaticFiles(directory=STATIC_DIR), name="static")
 store = DealStore()
 
