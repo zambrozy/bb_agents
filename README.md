@@ -13,6 +13,8 @@ make sample SEED=42   # same, but reproducible
 make bid       # play one auction with LLM players (needs an API key)
 make bid ARGS="--seed 42 --config config/bidding.toml"
 make serve     # web UI on http://127.0.0.1:8000
+make mlflow-ui # browse auction traces on http://127.0.0.1:5000
+make export    # traced decisions -> data/decisions.jsonl
 ```
 
 ## Using the sampler
@@ -88,6 +90,49 @@ API (interactive docs at `/docs`):
   (models in `src/models/web/events.py`).
 - `GET /api/config` — model and convention per seat.
 
+## Tracing (MLflow)
+
+Every auction played by `make bid` or the web UI is recorded as one
+MLflow trace — for debugging the LLM players and for collecting
+examples to evaluate and train bidding agents.
+
+**What a trace holds:**
+
+```text
+auction                 deal, dealer, vulnerability, players -> auction,
+│                       contract, declarer
+└─ LangGraph            (autolog) every graph step
+   └─ player_bid
+      └─ bid_decision   BidObservation -> BidDecision (call,
+         │              reasoning, legal); one per attempt
+         └─ player / chat model / claude CLI call (prompt, reply,
+                        tokens, cost)
+```
+
+The trace is tagged with `dealer`, `vulnerability`,
+`model.<SEAT>`, `convention.<SEAT>`, `contract` and `declarer`, so it
+can be searched, e.g. `tags.contract = '3NT by SOUTH'`.
+
+**Where it goes:** the SQLite file `data/mlflow.db` (no server
+needed; `data/` is gitignored). Environment variables:
+
+- `MLFLOW_TRACKING_URI` — another store, e.g. `http://localhost:5000`
+  for a running `mlflow server`.
+- `BB_AGENTS_EXPERIMENT` — experiment name (default `bidding`).
+- `BB_AGENTS_TRACING=0` — turn tracing off.
+
+**Export:** `make export` writes one JSON line per decision to
+`data/decisions.jsonl` (`DecisionRecord`: observation, decision,
+model, convention, full deal, contract, `finished`). Rejected
+attempts are included with `legal: false`. Options via `ARGS`, e.g.
+`make export ARGS="--max-traces 100 --out other.jsonl"`.
+
+**In code:** MLflow stays out of the agents — they are only
+decorated from `src/tracing/` (`@trace_decision` on `player_bid`,
+`@trace_auction` on `stream_bidding`, `@trace_llm_call` on
+`run_claude`). `setup_tracing()` is called by the entry points; tests
+run with tracing off (`tests/conftest.py`).
+
 ## Project layout
 
 ```text
@@ -95,7 +140,8 @@ bb_agents/
 ├── config/
 │   └── bidding.toml          # model and convention per seat
 ├── scripts/
-│   └── play_bidding.py       # command behind `make bid`
+│   ├── play_bidding.py       # command behind `make bid`
+│   └── export_decisions.py   # command behind `make export`
 ├── src/
 │   ├── agents/
 │   │   ├── player.py         # prompts, create_player
@@ -109,8 +155,11 @@ bb_agents/
 │   │   ├── cards/            # Card, Hand, Deal, Deck (shared by
 │   │   │                     # the sampler and the bidding)
 │   │   ├── sampler/          # DealAnalysis
+│   │   ├── tracing/          # BidObservation, BidDecision,
+│   │   │                     # AuctionSummary, DecisionRecord
 │   │   └── web/              # API schemas and bidding stream events
 │   ├── sampler/              # DealSampler: dealing, DDS analysis, reports
+│   ├── tracing/              # MLflow setup, span decorators, export
 │   └── web/                  # FastAPI app, deal store, SSE events
 │       └── static/           # frontend: index.html, app.js, style.css
 ├── tests/
@@ -120,12 +169,15 @@ bb_agents/
 │   ├── test_cards.py         # Card, Hand, Deal, Deck; parsing
 │   ├── test_sampler.py       # sampling, DDS analysis, reports
 │   ├── test_web.py           # API and bidding stream; players scripted
+│   ├── test_tracing.py       # traces, tags, export; temp SQLite store
+│   ├── conftest.py           # tracing off for all tests
 │   └── test_smoke.py         # checks the DDS wheel
 ├── Makefile                  # `make help` lists targets
 └── pyproject.toml
 ```
 
-`.dds-src/` and `vendor/` are created by `make install` and are gitignored.
+`.dds-src/` and `vendor/` are created by `make install`, `data/` by
+the first traced auction; all are gitignored.
 
 ## Building DDS
 

@@ -1,5 +1,5 @@
-.PHONY: help install sync test sample bid serve build-dds verify-dds \
-	clean-dds clean
+.PHONY: help install sync test sample bid serve mlflow-ui export \
+	build-dds verify-dds clean-dds clean
 
 # DDS source configuration — override on the command line if needed, e.g.
 #   make build-dds DDS_REF=main
@@ -25,6 +25,8 @@ help:
 	@echo "  sample     - print a random deal + DD analysis (optional SEED=<int>)"
 	@echo "  bid        - play one auction with LLM players (config/bidding.toml)"
 	@echo "  serve      - start the web UI on http://127.0.0.1:8000"
+	@echo "  mlflow-ui  - browse traces in data/mlflow.db on http://127.0.0.1:5000"
+	@echo "  export     - write traced decisions to data/decisions.jsonl"
 	@echo "  verify-dds - run DDS's upstream tests against the installed wheel"
 	@echo "  clean-dds  - remove $(DDS_DIR) and $(VENDOR_DIR)"
 	@echo "  clean      - clean-dds plus .venv and uv.lock"
@@ -64,6 +66,15 @@ bid:
 # Start the web UI on http://127.0.0.1:8000 (reloads on code changes).
 serve:
 	uv run uvicorn web.app:app --reload
+
+# Browse the auction traces stored in the default SQLite file.
+mlflow-ui:
+	uv run mlflow ui --backend-store-uri sqlite:///data/mlflow.db \
+		--default-artifact-root data/mlartifacts
+
+# Export traced decisions as JSONL. ARGS e.g. "--max-traces 100".
+export:
+	uv run python scripts/export_decisions.py $(ARGS)
 
 # Run DDS's own upstream test suite (in $(DDS_DIR), gitignored & regenerated)
 # as a build-acceptance gate. PYTHONPATH follows DDS's docs/python_interface.md:
