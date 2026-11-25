@@ -21,6 +21,7 @@ from consts.tracing import (
     EXPERIMENT_ENV_VAR,
     TRACING_ENV_VAR,
     TRACKING_URI_ENV_VAR,
+    TraceSource,
 )
 from consts.web import CONFIG_ENV_VAR
 from models.bidding import (
@@ -32,12 +33,18 @@ from models.bidding import (
 )
 from models.tracing import BidDecision, BidObservation
 from sampler import DealSampler
-from tracing import load_decisions, setup_tracing, write_jsonl
+from tracing import (
+    load_decisions,
+    setup_tracing,
+    trace_filter,
+    write_jsonl,
+)
 from web.app import app
 
 DEAL = DealSampler(seed=1).sample_deal()
 SEATS = ("NORTH", "EAST", "SOUTH", "WEST")
 EXPERIMENT = "test-bidding"
+BATCH = "collect-test"
 # EAST's 1C is illegal after 1H and is retried as 2C.
 SCRIPT = ["1H", "1C", "2C", "P", "P", "P"]
 
@@ -96,8 +103,9 @@ def traced(tmp_path: Path, monkeypatch) -> Path:
         TRACKING_URI_ENV_VAR, f"sqlite:///{tmp_path}/mlflow.db"
     )
     monkeypatch.setenv(EXPERIMENT_ENV_VAR, EXPERIMENT)
-    assert setup_tracing()
+    assert setup_tracing(TraceSource.COLLECT, BATCH)
     yield tmp_path
+    setup_tracing()  # clears the process tags
     mlflow.langchain.autolog(disable=True)
     mlflow.tracing.disable()
 
@@ -170,6 +178,8 @@ def test_auction_trace_spans_and_tags(traced):
     assert tags["declarer"] == "EAST"
     assert tags["model.NORTH"] == "p:m"
     assert tags["convention.WEST"] == "SAYC"
+    assert tags["source"] == "collect"
+    assert tags["batch"] == BATCH
 
 
 def test_export_decisions_to_jsonl(traced):
@@ -192,11 +202,42 @@ def test_export_decisions_to_jsonl(traced):
     assert all(r.finished and r.contract == "2C by EAST"
                for r in records)
     assert records[0].model == "p:m"
+    assert all(r.source == "collect" for r in records)
 
     path = traced / "out" / "decisions.jsonl"
     assert write_jsonl(records, path) == len(SCRIPT)
     lines = path.read_text().splitlines()
     assert json.loads(lines[2])["observation"]["try_nb"] == 1
+
+
+def test_trace_filter():
+    """Tags become backticked equality clauses, ANDed with the raw
+    filter; nothing to filter gives None."""
+    assert trace_filter({}) is None
+    assert trace_filter({"source": "collect", "model.NORTH": "p:m"},
+                        "tags.contract LIKE '%NT%'") == (
+        "tags.`source` = 'collect' AND tags.`model.NORTH` = 'p:m'"
+        " AND tags.contract LIKE '%NT%'"
+    )
+
+
+def test_export_filtered_by_tags(traced):
+    """Only the traces matching the filter are exported."""
+    for batch in ("b1", "b2"):
+        setup_tracing(TraceSource.COLLECT, batch)
+        with patch.object(
+            player_module, "init_chat_model",
+            return_value=_ScriptedModel(SCRIPT),
+        ):
+            run_module.run_bidding(DEAL, _config())
+
+    assert len(load_decisions(EXPERIMENT)) == 2 * len(SCRIPT)
+    only_b2 = trace_filter({"batch": "b2", "model.NORTH": "p:m"})
+    records = load_decisions(EXPERIMENT, filter_string=only_b2)
+    assert len(records) == len(SCRIPT)
+    assert len({r.trace_id for r in records}) == 1
+    none = trace_filter({"source": "web"})
+    assert load_decisions(EXPERIMENT, filter_string=none) == []
 
 
 def test_web_stream_trace_gets_result_tags(traced, monkeypatch):
