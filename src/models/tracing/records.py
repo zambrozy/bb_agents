@@ -125,6 +125,8 @@ class DecisionRecord(BaseModel):
             stopped or failed).
         contract (str | None): Final contract; None if passed out or
             not finished.
+        source (str | None): Where the auction was played (web,
+            play, collect); None for traces without the tag.
     """
 
     trace_id: str
@@ -135,3 +137,4 @@ class DecisionRecord(BaseModel):
     deal: dict[str, str]
     finished: bool
     contract: str | None = None
+    source: str | None = None

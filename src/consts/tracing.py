@@ -1,5 +1,17 @@
 """Constants of the MLflow tracing of auctions."""
 
+from enum import StrEnum
+
+
+class TraceSource(StrEnum):
+    """Entry point that played a traced auction (value of the
+    `source` tag)."""
+
+    WEB = "web"
+    PLAY = "play"
+    COLLECT = "collect"
+
+
 # Environment switch: tracing is on unless this is set to "0".
 TRACING_ENV_VAR = "BB_AGENTS_TRACING"
 TRACING_OFF = "0"
@@ -31,6 +43,10 @@ TAG_MODEL = "model."
 TAG_CONVENTION = "convention."
 TAG_CONTRACT = "contract"
 TAG_DECLARER = "declarer"
+# Where the auction was played (a TraceSource value) and, for batch
+# runs, the id of the run, e.g. "tags.source = 'collect'".
+TAG_SOURCE = "source"
+TAG_BATCH = "batch"
 # Tag value of a passed-out auction (no contract).
 PASSED_OUT = "passed out"
 
