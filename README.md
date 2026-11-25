@@ -15,6 +15,7 @@ make bid ARGS="--seed 42 --config config/bidding.toml"
 make serve     # web UI on http://127.0.0.1:8000
 make mlflow-ui # browse auction traces on http://127.0.0.1:5000
 make export    # traced decisions -> data/decisions.jsonl
+make collect ARGS="--count 50"  # many traced auctions (eval samples)
 ```
 
 ## Using the sampler
@@ -92,9 +93,10 @@ API (interactive docs at `/docs`):
 
 ## Tracing (MLflow)
 
-Every auction played by `make bid` or the web UI is recorded as one
-MLflow trace — for debugging the LLM players and for collecting
-examples to evaluate and train bidding agents.
+Every auction played by `make bid`, the web UI or
+`scripts/collect_samples.py` is recorded as one MLflow trace — for
+debugging the LLM players and for collecting examples to evaluate
+and train bidding agents.
 
 **What a trace holds:**
 
@@ -111,7 +113,11 @@ auction                 deal, dealer, vulnerability, players -> auction,
 
 The trace is tagged with `dealer`, `vulnerability`,
 `model.<SEAT>`, `convention.<SEAT>`, `contract` and `declarer`, so it
-can be searched, e.g. `tags.contract = '3NT by SOUTH'`.
+can be searched, e.g. `tags.contract = '3NT by SOUTH'`. `source`
+says where it was played (`web`, `play` for `make bid`, `collect`
+for `scripts/collect_samples.py`); collected traces also get
+`batch`, one id per script run, e.g.
+`tags.batch = 'collect-20261125-1402'`.
 
 **Where it goes:** the SQLite file `data/mlflow.db` (no server
 needed; `data/` is gitignored). Environment variables:
@@ -121,17 +127,35 @@ needed; `data/` is gitignored). Environment variables:
 - `BB_AGENTS_EXPERIMENT` — experiment name (default `bidding`).
 - `BB_AGENTS_TRACING=0` — turn tracing off.
 
+**Collecting samples:** `scripts/collect_samples.py` plays many
+auctions in a row (random deal, dealer and vulnerability), each one
+traced with `source=collect` and the run's `batch`:
+
+```bash
+make collect ARGS="--count 50 --seed 1"
+```
+
+Options: `--count` (finished auctions, default 10), `--seed`,
+`--config`, `--max-failures` (stop after N failed auctions in a row,
+default 3).
+
 **Export:** `make export` writes one JSON line per decision to
 `data/decisions.jsonl` (`DecisionRecord`: observation, decision,
-model, convention, full deal, contract, `finished`). Rejected
+model, convention, full deal, contract, `finished`, `source`). Rejected
 attempts are included with `legal: false`. Options via `ARGS`, e.g.
 `make export ARGS="--max-traces 100 --out other.jsonl"`.
+Export only some traces with `--tag KEY=VALUE` (repeatable, e.g.
+`--tag source=collect --tag batch=collect-20261125-1402`) and/or a
+raw MLflow filter, e.g. `--filter "tags.contract LIKE '%NT%'"` or
+`--filter "tags.source IS NULL"`. All conditions are ANDed (MLflow
+filters have no OR); `--max-traces` counts matching traces.
 
 **In code:** MLflow stays out of the agents — they are only
 decorated from `src/tracing/` (`@trace_decision` on `player_bid`,
 `@trace_auction` on `stream_bidding`, `@trace_llm_call` on
-`run_claude`). `setup_tracing()` is called by the entry points; tests
-run with tracing off (`tests/conftest.py`).
+`run_claude`). `setup_tracing(source, batch)` is called by the entry
+points and sets the `source` / `batch` tags of every trace of the
+process; tests run with tracing off (`tests/conftest.py`).
 
 ## Project layout
 
@@ -141,6 +165,7 @@ bb_agents/
 │   └── bidding.toml          # model and convention per seat
 ├── scripts/
 │   ├── play_bidding.py       # command behind `make bid`
+│   ├── collect_samples.py    # many traced auctions (eval samples)
 │   └── export_decisions.py   # command behind `make export`
 ├── src/
 │   ├── agents/

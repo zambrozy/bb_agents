@@ -1,4 +1,4 @@
-.PHONY: help install sync test sample bid serve mlflow-ui export \
+.PHONY: help install sync test sample bid collect serve mlflow-ui export \
 	build-dds verify-dds clean-dds clean
 
 # DDS source configuration — override on the command line if needed, e.g.
@@ -24,6 +24,7 @@ help:
 	@echo "  test       - run this project's pytest suite"
 	@echo "  sample     - print a random deal + DD analysis (optional SEED=<int>)"
 	@echo "  bid        - play one auction with LLM players (config/bidding.toml)"
+	@echo "  collect    - play many traced auctions as eval samples (ARGS)"
 	@echo "  serve      - start the web UI on http://127.0.0.1:8000"
 	@echo "  mlflow-ui  - browse traces in data/mlflow.db on http://127.0.0.1:5000"
 	@echo "  export     - write traced decisions to data/decisions.jsonl"
@@ -62,6 +63,10 @@ sample:
 # Play one auction. ARGS is optional, e.g. make bid ARGS="--seed 42".
 bid:
 	uv run python scripts/play_bidding.py $(ARGS)
+
+# Collect eval samples. ARGS e.g. "--count 50 --seed 1".
+collect:
+	uv run python scripts/collect_samples.py $(ARGS)
 
 # Start the web UI on http://127.0.0.1:8000 (reloads on code changes).
 serve:
