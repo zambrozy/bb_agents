@@ -10,7 +10,7 @@ from agents.player import (
     REJECTED_PROMPT,
     TURN_PROMPT,
 )
-from consts import VULNERABILITY_TEXT, Seat
+from consts.cards import VULNERABILITY_TEXT, Seat
 from models.bidding import (BiddingState,
                             Context,
                             PlayerReply,

@@ -11,7 +11,7 @@ import tempfile
 
 from langchain_core.runnables import Runnable, RunnableLambda
 
-from consts import CLAUDE_BIN
+from consts.agents import CLAUDE_BIN
 from models.bidding.call import PlayerReply
 from tracing import trace_llm_call
 

@@ -2,7 +2,8 @@
 
 import pytest
 
-from consts import CallType, Seat, Strain, Vulnerability
+from consts.bidding import CallType, Strain
+from consts.cards import Seat, Vulnerability
 from models.bidding import BiddingHistory, Call, PlayerReply
 
 

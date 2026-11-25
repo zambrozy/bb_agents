@@ -4,14 +4,13 @@ from langchain_core.runnables import Runnable
 
 from models.bidding.call import PlayerReply
 from agents.player_claude_code import create_claude_code_player
-from consts import (
+from consts.agents import (
     CLAUDE_CODE_PREFIX,
-    CONVENTION,
     DEFAULT_MAX_RETRIES,
     DEFAULT_TIMEOUT,
-    SEAT_NAMES,
-    Seat,
 )
+from consts.bidding import CONVENTION
+from consts.cards import SEAT_NAMES, Seat
 
 system_prompt = """
 You are the bridge player at seat {seat}. Your partner is {partner}. \

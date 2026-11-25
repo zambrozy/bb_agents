@@ -6,7 +6,7 @@ Usage: uv run python scripts/play_bidding.py [--config PATH] [--seed N]
 import argparse
 
 from agents.run_bidding import stream_bidding
-from consts import DEFAULT_CONFIG_PATH
+from consts.agents import DEFAULT_CONFIG_PATH
 from models.bidding import BiddingConfig, BiddingState
 from sampler import DealSampler
 from tracing import setup_tracing

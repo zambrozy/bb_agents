@@ -14,7 +14,15 @@ from langchain_core.runnables import RunnableLambda
 
 import agents.player as player_module
 import agents.run_bidding as run_module
-from consts import Seat, Vulnerability
+from consts.cards import Seat, Vulnerability
+from consts.tracing import (
+    AUCTION_SPAN,
+    DECISION_SPAN,
+    EXPERIMENT_ENV_VAR,
+    TRACING_ENV_VAR,
+    TRACKING_URI_ENV_VAR,
+)
+from consts.web import CONFIG_ENV_VAR
 from models.bidding import (
     BiddingConfig,
     BiddingHistory,
@@ -25,15 +33,7 @@ from models.bidding import (
 from models.tracing import BidDecision, BidObservation
 from sampler import DealSampler
 from tracing import load_decisions, setup_tracing, write_jsonl
-from tracing.consts import (
-    AUCTION_SPAN,
-    DECISION_SPAN,
-    EXPERIMENT_ENV_VAR,
-    TRACING_ENV_VAR,
-    TRACKING_URI_ENV_VAR,
-)
 from web.app import app
-from web.consts import CONFIG_ENV_VAR
 
 DEAL = DealSampler(seed=1).sample_deal()
 SEATS = ("NORTH", "EAST", "SOUTH", "WEST")

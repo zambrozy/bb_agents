@@ -8,7 +8,7 @@ import mlflow
 from mlflow.entities import NoOpSpan
 from mlflow.entities.span import Span
 
-from tracing.consts import (
+from consts.tracing import (
     ARTIFACT_DIR,
     DEFAULT_EXPERIMENT,
     DEFAULT_TRACKING_URI,

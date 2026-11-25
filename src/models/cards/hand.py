@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, field_validator
 
-from consts import (
+from consts.cards import (
     CARDS_PER_HAND,
     HCP_BY_RANK,
     PBN_SUIT_SEP,

@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, field_validator
 
-from consts import PBN_TO_SEAT, SEAT_TO_PBN, Seat, Suit
+from consts.cards import PBN_TO_SEAT, SEAT_TO_PBN, Seat, Suit
 from models.cards.hand import Hand
 
 

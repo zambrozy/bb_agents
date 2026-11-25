@@ -5,13 +5,13 @@ from pathlib import Path
 import mlflow
 from mlflow.entities import Trace
 
-from models.tracing import BidDecision, BidObservation, DecisionRecord
-from tracing.consts import (
+from consts.tracing import (
     AUCTION_SPAN,
     DECISION_SPAN,
     TAG_CONVENTION,
     TAG_MODEL,
 )
+from models.tracing import BidDecision, BidObservation, DecisionRecord
 
 
 def decision_records(trace: Trace) -> list[DecisionRecord]:

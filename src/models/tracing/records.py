@@ -9,7 +9,7 @@ from typing import Self
 
 from pydantic import BaseModel
 
-from consts import SEAT_NAMES, VULNERABILITY_NAMES
+from consts.cards import SEAT_NAMES, VULNERABILITY_NAMES
 from models.bidding import BiddingHistory, BiddingState, PlayerReply
 
 

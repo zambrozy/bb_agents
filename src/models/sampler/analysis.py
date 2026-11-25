@@ -2,7 +2,8 @@
 
 from pydantic import BaseModel
 
-from consts import SEAT_TO_PBN, STRAIN_TO_CHAR, Seat, Strain
+from consts.bidding import STRAIN_TO_CHAR, Strain
+from consts.cards import SEAT_TO_PBN, Seat
 
 
 class DealAnalysis(BaseModel):

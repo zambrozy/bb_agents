@@ -5,7 +5,7 @@ from typing import Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from consts import (
+from consts.bidding import (
     BID_STRAIN_ORDER,
     CALL_PATTERN,
     CHAR_TO_STRAIN,

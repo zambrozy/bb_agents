@@ -4,7 +4,7 @@ import random
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
-from consts import CARDS_PER_HAND, MAX_RANK, MIN_RANK, Seat, Suit
+from consts.cards import CARDS_PER_HAND, MAX_RANK, MIN_RANK, Seat, Suit
 from models.cards.card import Card
 from models.cards.deal import Deal
 from models.cards.hand import Hand

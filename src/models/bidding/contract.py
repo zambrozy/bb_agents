@@ -2,7 +2,8 @@
 
 from pydantic import BaseModel, ConfigDict
 
-from consts import STRAIN_TO_CHAR, Seat, Strain
+from consts.bidding import STRAIN_TO_CHAR, Strain
+from consts.cards import Seat
 
 
 class Contract(BaseModel):

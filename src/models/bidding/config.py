@@ -6,13 +6,9 @@ from typing import Self, get_args
 
 from pydantic import BaseModel, Field, model_validator
 
-from consts import (
-    CONVENTION,
-    DEFAULT_MAX_RETRIES,
-    DEFAULT_TIMEOUT,
-    SEAT_NAMES,
-    Seat,
-)
+from consts.agents import DEFAULT_MAX_RETRIES, DEFAULT_TIMEOUT
+from consts.bidding import CONVENTION
+from consts.cards import SEAT_NAMES, Seat
 
 
 class PlayerConfig(BaseModel):

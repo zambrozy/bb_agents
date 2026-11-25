@@ -8,7 +8,8 @@ from typing import Literal, Self
 
 from pydantic import BaseModel
 
-from consts import BOOK_TRICKS, SEAT_NAMES, STRAIN_TO_CHAR
+from consts.bidding import BOOK_TRICKS, STRAIN_TO_CHAR
+from consts.cards import SEAT_NAMES
 from models.bidding import BiddingState
 from models.sampler import DealAnalysis
 

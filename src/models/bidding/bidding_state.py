@@ -6,7 +6,7 @@ from typing import TypedDict, Annotated
 
 from models.bidding import BiddingHistory, PlayerReply, Call
 from models.cards import Deal
-from consts import Seat
+from consts.cards import Seat
 
 
 def update_history(

@@ -8,7 +8,7 @@ import os
 
 import mlflow
 
-from tracing.consts import TRACING_ENV_VAR, TRACING_OFF
+from consts.tracing import TRACING_ENV_VAR, TRACING_OFF
 
 os.environ[TRACING_ENV_VAR] = TRACING_OFF
 mlflow.tracing.disable()

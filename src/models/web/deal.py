@@ -4,10 +4,10 @@ from typing import Self
 
 from pydantic import BaseModel
 
-from consts import (
+from consts.bidding import STRAIN_TO_CHAR
+from consts.cards import (
     SEAT_NAMES,
     SEAT_TO_PBN,
-    STRAIN_TO_CHAR,
     VULNERABILITY_NAMES,
     Seat,
     Suit,

@@ -7,8 +7,8 @@ Reads MLFLOW_TRACKING_URI, or the default data/mlflow.db.
 
 import argparse
 
+from consts.tracing import DEFAULT_EXPORT_PATH
 from tracing import configure_store, load_decisions, write_jsonl
-from tracing.consts import DEFAULT_EXPORT_PATH
 
 
 def main() -> None:

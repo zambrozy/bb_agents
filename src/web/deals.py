@@ -4,10 +4,10 @@ import uuid
 from collections import OrderedDict
 from threading import Lock
 
-from consts import Seat, Vulnerability
+from consts.cards import Seat, Vulnerability
+from consts.web import DEAL_ID_LENGTH, MAX_STORED_DEALS
 from models.web import DealRecord, DealRequest
 from sampler import DealSampler
-from web.consts import DEAL_ID_LENGTH, MAX_STORED_DEALS
 
 # Endpoints run in a thread pool; DDS calls are serialized to be safe.
 _DDS_LOCK = Lock()

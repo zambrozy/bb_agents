@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from consts import CHAR_TO_RANK, MAX_RANK, MIN_RANK, Suit
+from consts.cards import CHAR_TO_RANK, MAX_RANK, MIN_RANK, Suit
 
 
 class Card(BaseModel):

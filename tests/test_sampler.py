@@ -1,6 +1,7 @@
 """Tests for the DealSampler and its double-dummy analysis."""
 
-from consts import CARDS_PER_HAND, Seat, Strain, Vulnerability
+from consts.bidding import Strain
+from consts.cards import CARDS_PER_HAND, Seat, Vulnerability
 from models.cards import Deal
 from sampler import DealSampler
 

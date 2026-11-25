@@ -20,7 +20,7 @@ make export    # traced decisions -> data/decisions.jsonl
 ## Using the sampler
 
 ```python
-from consts import Vulnerability
+from consts.cards import Vulnerability
 from sampler import DealSampler
 
 sampler = DealSampler(seed=42)  # seed is optional
@@ -148,7 +148,13 @@ bb_agents/
 │   │   ├── player_claude_code.py  # players run through `claude -p`
 │   │   ├── supervisor.py     # graph nodes, create_supervisor
 │   │   └── run_bidding.py    # run_bidding, stream_bidding
-│   ├── consts/               # enums and constants, numbered as DDS expects
+│   ├── consts/
+│   │   ├── cards.py          # Suit, Seat, Vulnerability (numbered as
+│   │   │                     # DDS expects), ranks, PBN notation
+│   │   ├── bidding.py        # Strain, CallType, auction rules
+│   │   ├── agents.py         # model request limits, config path
+│   │   ├── tracing.py        # MLflow store, span names, tags
+│   │   └── web.py            # paths, deal store limits
 │   ├── models/
 │   │   ├── bidding/          # auction rules (Call, BiddingHistory,
 │   │   │                     # Contract), graph state, config

@@ -4,7 +4,7 @@ import random
 
 import dds3
 
-from consts import Vulnerability
+from consts.cards import Vulnerability
 from models.cards import STANDARD_DECK, Deal
 from models.sampler import DealAnalysis
 

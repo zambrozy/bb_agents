@@ -13,10 +13,7 @@ from fastapi.responses import FileResponse
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from fastapi.staticfiles import StaticFiles
 
-from models.bidding import BiddingConfig
-from models.web import DealRecord, DealRequest, DealView
-from web.bidding import bidding_events
-from web.consts import (
+from consts.web import (
     APP_TITLE,
     CONFIG_ENV_VAR,
     DEFAULT_CONFIG_FILE,
@@ -24,6 +21,9 @@ from web.consts import (
     STATIC_DIR,
     STATIC_URL,
 )
+from models.bidding import BiddingConfig
+from models.web import DealRecord, DealRequest, DealView
+from web.bidding import bidding_events
 from web.deals import DealStore, new_deal
 from tracing import setup_tracing
 

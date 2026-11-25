@@ -2,19 +2,20 @@
 
 from pathlib import Path
 
-from consts import DEFAULT_CONFIG_PATH
+from consts.agents import DEFAULT_CONFIG_PATH
 
 APP_TITLE = "bb_agents bidding table"
 
-# Project root: src/web/consts.py -> two levels up from src/.
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+# Source and project roots: src/consts/web.py -> src/ -> project root.
+SRC_DIR = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = SRC_DIR.parent
 
 # Players config; the environment variable overrides the default.
 CONFIG_ENV_VAR = "BB_AGENTS_CONFIG"
 DEFAULT_CONFIG_FILE = PROJECT_ROOT / DEFAULT_CONFIG_PATH
 
 # Frontend files and the URL prefix they are served under.
-STATIC_DIR = Path(__file__).resolve().parent / "static"
+STATIC_DIR = SRC_DIR / "web" / "static"
 STATIC_URL = "/static"
 INDEX_FILE = "index.html"
 

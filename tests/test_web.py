@@ -12,11 +12,11 @@ from fastapi.testclient import TestClient
 from langchain_core.runnables import RunnableLambda
 
 import agents.player as player_module
-from consts import CARDS_PER_HAND
+from consts.cards import CARDS_PER_HAND
+from consts.web import CONFIG_ENV_VAR
 from models.bidding import PlayerReply
 from models.web import DealRequest
 from web.app import app
-from web.consts import CONFIG_ENV_VAR
 from web.deals import DealStore, new_deal
 
 SEATS = ("NORTH", "EAST", "SOUTH", "WEST")

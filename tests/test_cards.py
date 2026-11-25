@@ -4,7 +4,7 @@ import random
 
 import pytest
 
-from consts import CARDS_PER_HAND, Seat
+from consts.cards import CARDS_PER_HAND, Seat
 from models.cards import STANDARD_DECK, Deal, Hand
 
 

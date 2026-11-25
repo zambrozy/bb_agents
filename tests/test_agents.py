@@ -14,7 +14,7 @@ from agents.supervisor import (
     own_reasoning,
     route_bid_turn,
 )
-from consts import Seat, Vulnerability
+from consts.cards import Seat, Vulnerability
 from models.bidding import (
     BiddingConfig,
     BiddingHistory,

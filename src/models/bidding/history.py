@@ -2,19 +2,17 @@
 
 from pydantic import BaseModel, Field
 
-from consts import (
+from consts.bidding import (
     BID_STRAIN_ORDER,
     MAX_LEVEL,
     MIN_LEVEL,
     NO_CALL_MARK,
     PASSES_TO_END_AFTER_BID,
     PASSES_TO_END_PASSED_OUT,
-    SEAT_TO_PBN,
     TABLE_COL_WIDTH,
     CallType,
-    Seat,
-    Vulnerability
 )
+from consts.cards import SEAT_TO_PBN, Seat, Vulnerability
 from models.bidding.call import Call
 from models.bidding.contract import Contract
 

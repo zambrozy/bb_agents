@@ -13,9 +13,7 @@ from typing import Any
 import mlflow
 from mlflow.entities import SpanType
 
-from models.bidding import BiddingConfig, BiddingState
-from models.tracing import AuctionSummary, BidDecision, BidObservation
-from tracing.consts import (
+from consts.tracing import (
     AUCTION_SPAN,
     DECISION_SPAN,
     PASSED_OUT,
@@ -26,6 +24,8 @@ from tracing.consts import (
     TAG_MODEL,
     TAG_VULNERABILITY,
 )
+from models.bidding import BiddingConfig, BiddingState
+from models.tracing import AuctionSummary, BidDecision, BidObservation
 from tracing.setup import is_recording, tag_trace
 
 # A graph node: (state, runtime) -> state update.
