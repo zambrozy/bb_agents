@@ -7,6 +7,7 @@ import argparse
 
 from agents.run_bidding import stream_bidding
 from consts.agents import DEFAULT_CONFIG_PATH
+from consts.tracing import TraceSource
 from models.bidding import BiddingConfig, BiddingState
 from sampler import DealSampler
 from tracing import setup_tracing
@@ -33,7 +34,7 @@ def main() -> None:
     parser.add_argument("--config", default=DEFAULT_CONFIG_PATH)
     parser.add_argument("--seed", type=int, default=None)
     args = parser.parse_args()
-    setup_tracing()
+    setup_tracing(TraceSource.PLAY)
 
     sampler = DealSampler(args.seed)
     deal = sampler.sample_deal()

@@ -21,6 +21,7 @@ from consts.web import (
     STATIC_DIR,
     STATIC_URL,
 )
+from consts.tracing import TraceSource
 from models.bidding import BiddingConfig
 from models.web import DealRecord, DealRequest, DealView
 from web.bidding import bidding_events
@@ -32,7 +33,7 @@ from tracing import setup_tracing
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Server start-up: configure MLflow tracing (FastAPI)
     -> async iterator yielding once while the server runs."""
-    setup_tracing()
+    setup_tracing(TraceSource.WEB)
     yield
 
 
