@@ -26,7 +26,7 @@ from consts.tracing import (
 )
 from models.bidding import BiddingConfig, BiddingState
 from models.tracing import AuctionSummary, BidDecision, BidObservation
-from tracing.setup import is_recording, tag_trace
+from tracing.setup import is_recording, process_tags, tag_trace
 
 # A graph node: (state, runtime) -> state update.
 Node = Callable[[BiddingState, Any], dict]
@@ -65,8 +65,12 @@ def start_tags(
     config: BiddingConfig, dealer: str, vulnerability: str
 ) -> dict[str, str]:
     """Tags known before the auction (BiddingConfig, dealer: seat
-    name, vulnerability: name) -> dict[str, str]."""
-    tags = {TAG_DEALER: dealer, TAG_VULNERABILITY: vulnerability}
+    name, vulnerability: name) -> dict[str, str].
+
+    Includes the process tags (source, batch) of setup_tracing.
+    """
+    tags = process_tags()
+    tags |= {TAG_DEALER: dealer, TAG_VULNERABILITY: vulnerability}
     for seat, player in config.players.items():
         tags[TAG_MODEL + seat] = player.model
         tags[TAG_CONVENTION + seat] = player.convention

@@ -14,12 +14,18 @@ from consts.tracing import (
     DEFAULT_TRACKING_URI,
     EXPERIMENT_ENV_VAR,
     SQLITE_PREFIX,
-    TRACKING_URI_ENV_VAR,
+    TAG_BATCH,
+    TAG_SOURCE,
     TRACING_ENV_VAR,
     TRACING_OFF,
+    TRACKING_URI_ENV_VAR,
+    TraceSource,
 )
 
 logger = logging.getLogger(__name__)
+
+# Tags of every trace of this process, set by setup_tracing.
+_process_tags: dict[str, str] = {}
 
 
 def tracing_requested() -> bool:
@@ -27,13 +33,23 @@ def tracing_requested() -> bool:
     return os.environ.get(TRACING_ENV_VAR) != TRACING_OFF
 
 
-def setup_tracing() -> bool:
-    """Configure MLflow tracing for the auctions (-> bool: on/off).
+def setup_tracing(
+    source: TraceSource | None = None, batch: str | None = None
+) -> bool:
+    """Configure MLflow tracing for the auctions (source: entry
+    point, batch: id of a batch run) -> bool: on/off.
 
     Off (BB_AGENTS_TRACING=0): spans become no-ops. On: traces go to
     the store of configure_store and LangChain / LangGraph calls are
-    traced automatically.
+    traced automatically. Every trace is tagged with `source` and
+    `batch` when given.
     """
+    _process_tags.clear()
+    if source is not None:
+        _process_tags[TAG_SOURCE] = str(source)
+    if batch is not None:
+        _process_tags[TAG_BATCH] = batch
+
     if not tracing_requested():
         mlflow.tracing.disable()
         return False
@@ -43,6 +59,12 @@ def setup_tracing() -> bool:
     mlflow.tracing.enable()
     logger.info("MLflow tracing to %s, experiment %r", uri, name)
     return True
+
+
+def process_tags() -> dict[str, str]:
+    """Tags set by setup_tracing for every trace (-> dict[str, str],
+    a copy)."""
+    return dict(_process_tags)
 
 
 def configure_store() -> tuple[str, str]:

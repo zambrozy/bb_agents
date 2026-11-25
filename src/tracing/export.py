@@ -10,6 +10,7 @@ from consts.tracing import (
     DECISION_SPAN,
     TAG_CONVENTION,
     TAG_MODEL,
+    TAG_SOURCE,
 )
 from models.tracing import BidDecision, BidObservation, DecisionRecord
 
@@ -44,15 +45,35 @@ def decision_records(trace: Trace) -> list[DecisionRecord]:
             deal=root.inputs["deal"],
             finished=summary is not None,
             contract=summary["contract"] if summary else None,
+            source=tags.get(TAG_SOURCE),
         ))
     return records
 
 
+def trace_filter(
+    tags: dict[str, str], extra: str | None = None
+) -> str | None:
+    """MLflow filter string matching all `tags` and `extra`
+    (tags: key -> exact value, extra: raw filter string or None)
+    -> str | None; None when there is nothing to filter.
+
+    Conditions are joined with AND (MLflow has no OR). Keys are
+    backticked, so dotted ones like `model.NORTH` work.
+    """
+    clauses = [f"tags.`{key}` = '{value}'" for key, value in tags.items()]
+    if extra:
+        clauses.append(extra)
+    return " AND ".join(clauses) or None
+
+
 def load_decisions(
-    experiment: str, max_traces: int | None = None
+    experiment: str,
+    max_traces: int | None = None,
+    filter_string: str | None = None,
 ) -> list[DecisionRecord]:
-    """Decisions of all auction traces of an experiment
-    (experiment: name, max_traces: newest N traces or all)
+    """Decisions of the auction traces of an experiment
+    (experiment: name, max_traces: newest N matching traces or all,
+    filter_string: MLflow trace filter or None for all)
     -> list[DecisionRecord]; [] if the experiment does not exist.
 
     Reads from the current MLflow tracking URI, after writing the
@@ -63,6 +84,7 @@ def load_decisions(
         return []
     traces = mlflow.search_traces(
         locations=[found.experiment_id],
+        filter_string=filter_string,
         max_results=max_traces,
         order_by=["timestamp_ms DESC"],
         return_type="list",

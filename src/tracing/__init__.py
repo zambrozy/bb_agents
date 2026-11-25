@@ -1,6 +1,11 @@
 """MLflow tracing of auctions and export of the recorded decisions."""
 
-from tracing.export import decision_records, load_decisions, write_jsonl
+from tracing.export import (
+    decision_records,
+    load_decisions,
+    trace_filter,
+    write_jsonl,
+)
 from tracing.setup import (
     configure_store,
     is_recording,
@@ -19,6 +24,7 @@ __all__ = [
     "tag_trace",
     "trace_auction",
     "trace_decision",
+    "trace_filter",
     "trace_llm_call",
     "tracing_requested",
     "write_jsonl",
