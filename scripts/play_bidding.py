@@ -8,7 +8,7 @@ import argparse
 from agents.run_bidding import stream_bidding
 from consts.agents import DEFAULT_CONFIG_PATH
 from consts.tracing import TraceSource
-from models.bidding import BiddingConfig, BiddingState
+from models.bidding import BiddingConfig, BiddingState, ContractResult
 from sampler import DealSampler
 from tracing import setup_tracing
 
@@ -37,19 +37,24 @@ def main() -> None:
     setup_tracing(TraceSource.PLAY)
 
     sampler = DealSampler(args.seed)
-    deal = sampler.sample_deal()
+    deal, analysis = sampler.sample_and_analyze()
     config = BiddingConfig.load(args.config)
 
     print(deal.format())
 
     state = None
-    for mode, chunk in stream_bidding(deal, config):
+    for mode, chunk in stream_bidding(
+        deal, config, analysis=analysis
+    ):
         if mode == "values":
             state = BiddingState.model_validate(chunk)
         else:
             print_update(chunk, state)
 
+    result = ContractResult.from_history(state.history, analysis)
     print(f"\n{state.history.to_table()}")
+    print(f"\nScore (NS): {result.score_ns}, par (NS): "
+          f"{result.par_ns}, vs par: {result.vs_par}")
 
 
 if __name__ == "__main__":

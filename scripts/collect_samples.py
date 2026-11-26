@@ -16,7 +16,7 @@ from agents.run_bidding import run_bidding
 from consts.agents import DEFAULT_CONFIG_PATH
 from consts.cards import Seat, Vulnerability
 from consts.tracing import PASSED_OUT, TraceSource
-from models.bidding import BiddingConfig
+from models.bidding import BiddingConfig, ContractResult
 from sampler import DealSampler
 from tracing import setup_tracing
 
@@ -31,10 +31,13 @@ def play_one(
     deal = sampler.sample_deal()
     dealer = rng.choice(list(Seat))
     vulnerability = rng.choice(list(Vulnerability))
-    state = run_bidding(deal, config, dealer, vulnerability)
-    contract = state.history.contract
-    result = str(contract) if contract else PASSED_OUT
-    return f"dealer {dealer.name}, vul {vulnerability.name}: {result}"
+    analysis = sampler.analyze(deal, vulnerability)
+    state = run_bidding(deal, config, dealer, vulnerability, analysis)
+    result = ContractResult.from_history(state.history, analysis)
+    contract = result.contract or PASSED_OUT
+    return (f"dealer {dealer.name}, vul {vulnerability.name}: "
+            f"{contract}, score {result.score_ns}, "
+            f"vs par {result.vs_par}")
 
 
 def main() -> None:
