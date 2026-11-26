@@ -68,9 +68,10 @@ bid:
 collect:
 	uv run python scripts/collect_samples.py $(ARGS)
 
-# Start the web UI on http://127.0.0.1:8000 (reloads on code changes).
+# Start the web UI on http://127.0.0.1:8000 (reloads on changes in
+# src/ only: watching .venv/, .dds-src/ or data/ wastes CPU).
 serve:
-	uv run uvicorn web.app:app --reload
+	uv run uvicorn web.app:app --reload --reload-dir src
 
 # Browse the auction traces stored in the default SQLite file.
 mlflow-ui:

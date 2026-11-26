@@ -70,14 +70,19 @@ To play a seat with Claude Code instead of an API model, use the `claude_code:` 
 
 All four seats are required, and partners (NORTH/SOUTH, EAST/WEST) must play the same convention. API keys are read from the environment as the provider expects (e.g. `GOOGLE_API_KEY`).
 
-**From code**, `src/agents/run_bidding.py` has `run_bidding(deal, config)` (takes a `Deal`, returns the final `BiddingState`) and `stream_bidding()` (yields LangGraph `(mode, chunk)` pairs, `updates` and `values`). `scripts/play_bidding.py` is a thin wrapper around them.
+**From code**, `src/agents/run_bidding.py` has `run_bidding(deal, config)` (takes a `Deal`, returns the final `BiddingState`) and `stream_bidding()` (yields LangGraph `(mode, chunk)` pairs, `updates` and `values`). Both take an optional `analysis` (`DealAnalysis` of the deal with the same vulnerability), used only by the tracing to score the result; without it the tracing runs DDS itself. `scripts/play_bidding.py` is a thin wrapper around them.
+
+**Scoring.** `Contract.score(tricks, vulnerable)` gives the duplicate score of the declarer's side (part score / game / slam bonuses, doubled and redoubled overtricks, undertricks and insult). `ContractResult.from_history(history, analysis)` plays the final contract double dummy and compares it to par: `dd_tricks`, `result`, `score_ns`, `par_ns` and `vs_par = score_ns - par_ns`, all from North-South's view as DDS gives par (a passed-out deal scores 0). Par comes from `dds3.par`, which does not depend on the dealer.
 
 ## Web UI
 
 `make serve` starts a FastAPI service (`src/web/`) with a small frontend:
 sample a deal (seed, dealer, vulnerability), start the bidding and watch
 it live — each proposal with its reasoning, rejected calls, the auction
-grid — then the final contract against the double-dummy table and par.
+grid — then the result in two columns: the double-dummy table (contract
+cell highlighted) and, next to it, the bid contract with its
+double-dummy tricks and score, the par score and contracts, and the
+difference from par.
 Players come from `config/bidding.toml`; set `BB_AGENTS_CONFIG` to use
 another file. *Stop* ends the auction after the current model call.
 
@@ -102,7 +107,8 @@ and train bidding agents.
 
 ```text
 auction                 deal, dealer, vulnerability, players -> auction,
-│                       contract, declarer
+│                       contract, declarer, dd_tricks, score_ns,
+│                       par_ns, vs_par (ContractResult fields)
 └─ LangGraph            (autolog) every graph step
    └─ player_bid
       └─ bid_decision   BidObservation -> BidDecision (call,
@@ -112,8 +118,10 @@ auction                 deal, dealer, vulnerability, players -> auction,
 ```
 
 The trace is tagged with `dealer`, `vulnerability`,
-`model.<SEAT>`, `convention.<SEAT>`, `contract` and `declarer`, so it
-can be searched, e.g. `tags.contract = '3NT by SOUTH'`. `source`
+`model.<SEAT>`, `convention.<SEAT>`, `contract`, `declarer`, `score`,
+`par` and `vs_par` (NS view), so it can be searched, e.g.
+`tags.contract = '3NT by SOUTH'` or `tags.vs_par = '0'` (tags are
+strings, so `<` / `>` do not compare numbers). `source`
 says where it was played (`web`, `play` for `make bid`, `collect`
 for `scripts/collect_samples.py`); collected traces also get
 `batch`, one id per script run, e.g.
@@ -141,7 +149,8 @@ default 3).
 
 **Export:** `make export` writes one JSON line per decision to
 `data/decisions.jsonl` (`DecisionRecord`: observation, decision,
-model, convention, full deal, contract, `finished`, `source`). Rejected
+model, convention, full deal, contract, `finished`, `source`,
+`score_ns`, `par_ns`, `vs_par`). Rejected
 attempts are included with `legal: false`. Options via `ARGS`, e.g.
 `make export ARGS="--max-traces 100 --out other.jsonl"`.
 Export only some traces with `--tag KEY=VALUE` (repeatable, e.g.
@@ -176,13 +185,15 @@ bb_agents/
 │   ├── consts/
 │   │   ├── cards.py          # Suit, Seat, Vulnerability (numbered as
 │   │   │                     # DDS expects), ranks, PBN notation
-│   │   ├── bidding.py        # Strain, CallType, auction rules
+│   │   ├── bidding.py        # Strain, CallType, auction rules,
+│   │   │                     # duplicate scoring tables
 │   │   ├── agents.py         # model request limits, config path
 │   │   ├── tracing.py        # MLflow store, span names, tags
 │   │   └── web.py            # paths, deal store limits
 │   ├── models/
 │   │   ├── bidding/          # auction rules (Call, BiddingHistory,
-│   │   │                     # Contract), graph state, config
+│   │   │                     # Contract + scoring, ContractResult),
+│   │   │                     # graph state, config
 │   │   ├── cards/            # Card, Hand, Deal, Deck (shared by
 │   │   │                     # the sampler and the bidding)
 │   │   ├── sampler/          # DealAnalysis
