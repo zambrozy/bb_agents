@@ -182,7 +182,28 @@ section {
 li.rejected .feed-note { color: var(--bad); }
 .reasoning { margin: 4px 0 0; white-space: pre-wrap; font-size: 14px; }
 
-/* Analysis */
+/* Analysis: DD table | contract and par */
+#analysis {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 24px;
+}
+.facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 4px 14px;
+  margin: 10px 0;
+}
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; }
+.facts hr {
+  grid-column: 1 / -1;
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 4px 0;
+}
+.facts .muted { color: var(--muted); font-size: 13px; }
 #dd { border-collapse: collapse; margin: 10px 0; }
 #dd th, #dd td {
   padding: 3px 12px;
@@ -190,10 +211,8 @@ li.rejected .feed-note { color: var(--bad); }
   border-bottom: 1px solid var(--border);
 }
 #dd td.contract { outline: 2px solid var(--accent); font-weight: 700; }
-#result { font-size: 16px; }
 .makes { color: var(--ok); font-weight: 600; }
 .down { color: var(--bad); font-weight: 600; }
-#par { color: var(--muted); font-size: 13px; }
 
 @media (max-width: 900px) {
   main {
@@ -202,6 +221,7 @@ li.rejected .feed-note { color: var(--bad); }
   }
 }
 @media (max-width: 560px) {
+  #analysis { grid-template-columns: 1fr; }
   #table {
     grid-template-columns: 1fr;
     grid-template-areas: "north" "west" "east" "south" "center";

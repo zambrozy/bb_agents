@@ -154,32 +154,60 @@ function renderAnalysis(done = null) {
     });
     table.append(row);
   });
-
-  const par = $("par");
-  par.replaceChildren();
-  const score = deal.analysis.par_score.join(" / ");
-  par.append(el("div", "", `Par score: ${score}`));
-  deal.analysis.par_contracts.forEach((line) => {
-    par.append(el("div", "", `Par contracts: ${line}`));
-  });
 }
 
+// Score with its sign, e.g. "+420", "−200", "0": (int) -> str.
+function signed(score) {
+  if (score > 0) return `+${score}`;
+  if (score < 0) return `−${-score}`;
+  return "0";
+}
+
+// One label/value row of the facts list: (str, Node | str,
+// cls) -> void.
+function addFact(box, label, value, cls = "") {
+  box.append(el("dt", "", label));
+  const dd = el("dd", cls);
+  dd.append(value);
+  box.append(dd);
+}
+
+// Contract column: the bid contract, its double-dummy result and
+// score (after the auction), then par: (done event | null) -> void.
 function renderResult(done) {
   const box = $("result");
   box.replaceChildren();
-  if (!done) return;
-  if (!done.contract) {
-    box.textContent = "Passed out.";
-    return;
-  }
-  const [bid, ...rest] = done.contract.split(" ");
-  box.append("Final contract: ", callNode(bid), ` ${rest.join(" ")}. `);
-  box.append(`Double dummy: ${done.dd_tricks} tricks, needs ${done.needed} — `);
-  if (done.result >= 0) {
-    const extra = done.result > 0 ? ` +${done.result}` : "";
-    box.append(el("span", "makes", `makes${extra}`));
+  if (done && !done.contract) {
+    addFact(box, "Bid contract", "Passed out");
+    addFact(box, "Score (NS)", signed(done.score_ns));
+  } else if (done) {
+    const [bid, ...rest] = done.contract.split(" ");
+    const contract = el("span");
+    contract.append(callNode(bid), ` ${rest.join(" ")}`);
+    addFact(box, "Bid contract", contract);
+
+    const play = el("span", "", `${done.dd_tricks} tricks, `
+      + `needs ${done.needed} — `);
+    if (done.result >= 0) {
+      const extra = done.result > 0 ? ` +${done.result}` : "";
+      play.append(el("span", "makes", `makes${extra}`));
+    } else {
+      play.append(el("span", "down", `down ${-done.result}`));
+    }
+    addFact(box, "Double dummy", play);
+    addFact(box, "Score (NS)", signed(done.score_ns));
   } else {
-    box.append(el("span", "down", `down ${-done.result}`));
+    addFact(box, "Bid contract", "—", "muted");
+  }
+
+  box.append(el("hr"));
+  addFact(box, "Par score", deal.analysis.par_score.join(" / "));
+  deal.analysis.par_contracts.forEach((line) => {
+    addFact(box, "Par contract", line, "muted");
+  });
+  if (done) {
+    const cls = done.vs_par > 0 ? "makes" : done.vs_par < 0 ? "down" : "";
+    addFact(box, "vs par (NS)", signed(done.vs_par), cls);
   }
 }
 
