@@ -100,6 +100,14 @@ def test_frontend_is_served(client):
         assert client.get(f"/static/{name}").status_code == 200
 
 
+def test_frontend_is_not_cached(client):
+    """Page and static files must be revalidated; the API is not
+    touched."""
+    for path in ("/", "/static/app.js", "/static/style.css"):
+        assert client.get(path).headers["cache-control"] == "no-cache"
+    assert "cache-control" not in client.get("/api/config").headers
+
+
 def test_create_deal_returns_hands_and_analysis(client):
     """A new deal has 13 cards per seat, 40 HCP and a DD table."""
     response = client.post(
@@ -200,6 +208,11 @@ def test_stream_reports_proposals_rejections_and_result(client):
     dd = deal["analysis"]["tricks"]["C"]["E"]
     assert done["dd_tricks"] == dd
     assert done["result"] == dd - 8
+    par = int(deal["analysis"]["par_score"][0].split()[-1])
+    assert done["par_ns"] == par
+    assert done["vs_par"] == done["score_ns"] - par
+    # EAST declares: a made contract costs NS points.
+    assert (done["score_ns"] < 0) == (done["result"] >= 0)
 
 
 def test_stream_respects_dealer(client):
@@ -226,6 +239,8 @@ def test_stream_passed_out(client):
     done = events[-1][1]
     assert done["auction"] == ["P"] * 4
     assert done["contract"] is None and done["dd_tricks"] is None
+    assert done["score_ns"] == 0
+    assert done["vs_par"] == -done["par_ns"]
 
 
 def test_stream_reports_model_failure(client):

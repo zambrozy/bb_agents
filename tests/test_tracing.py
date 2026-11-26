@@ -173,9 +173,17 @@ def test_auction_trace_spans_and_tags(traced):
     legal = [span.outputs["legal"] for span in decisions]
     assert legal.count(False) == 1
 
+    analysis = DealSampler().analyze(DEAL)
+    par = analysis.par_ns
+    assert root.outputs["par_ns"] == par
+    assert root.outputs["vs_par"] == root.outputs["score_ns"] - par
+
     tags = trace.info.tags
     assert tags["contract"] == "2C by EAST"
     assert tags["declarer"] == "EAST"
+    assert tags["score"] == str(root.outputs["score_ns"])
+    assert tags["par"] == str(par)
+    assert tags["vs_par"] == str(root.outputs["vs_par"])
     assert tags["model.NORTH"] == "p:m"
     assert tags["convention.WEST"] == "SAYC"
     assert tags["source"] == "collect"
@@ -203,6 +211,9 @@ def test_export_decisions_to_jsonl(traced):
                for r in records)
     assert records[0].model == "p:m"
     assert all(r.source == "collect" for r in records)
+    par = DealSampler().analyze(DEAL).par_ns
+    assert all(r.par_ns == par for r in records)
+    assert all(r.vs_par == r.score_ns - par for r in records)
 
     path = traced / "out" / "decisions.jsonl"
     assert write_jsonl(records, path) == len(SCRIPT)
@@ -263,3 +274,7 @@ def test_web_stream_trace_gets_result_tags(traced, monkeypatch):
     [trace] = _auction_traces()
     assert trace.info.tags["contract"] == "2C by EAST"
     assert len(trace.search_spans(name=DECISION_SPAN)) == len(SCRIPT)
+    done = json.loads(
+        response.text.split("event: done\ndata: ")[1].splitlines()[0]
+    )
+    assert trace.info.tags["vs_par"] == str(done["vs_par"])
