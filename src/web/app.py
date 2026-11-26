@@ -1,23 +1,31 @@
 """FastAPI app: deal endpoints, live bidding stream and the frontend.
 
-Run from the project root: uv run uvicorn web.app:app --reload
+Run from the project root:
+uv run uvicorn web.app:app --reload --reload-dir src
 """
 
 import os
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import (
+    AsyncIterator,
+    Awaitable,
+    Callable,
+    Iterator,
+)
 from contextlib import asynccontextmanager
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.responses import FileResponse
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from fastapi.staticfiles import StaticFiles
 
 from consts.web import (
     APP_TITLE,
+    CACHE_CONTROL_HEADER,
     CONFIG_ENV_VAR,
     DEFAULT_CONFIG_FILE,
     INDEX_FILE,
+    NO_CACHE,
     STATIC_DIR,
     STATIC_URL,
 )
@@ -40,6 +48,20 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(title=APP_TITLE, lifespan=lifespan)
 app.mount(STATIC_URL, StaticFiles(directory=STATIC_DIR), name="static")
 store = DealStore()
+
+
+@app.middleware("http")
+async def no_cache_frontend(
+    request: Request,
+    call_next: Callable[[Request], Awaitable[Response]],
+) -> Response:
+    """Mark the page and static files `no-cache` (Request, next
+    handler) -> Response; API responses are left as they are."""
+    response = await call_next(request)
+    path = request.url.path
+    if path == "/" or path.startswith(STATIC_URL + "/"):
+        response.headers[CACHE_CONTROL_HEADER] = NO_CACHE
+    return response
 
 
 def load_config() -> BiddingConfig:
