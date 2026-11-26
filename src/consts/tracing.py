@@ -43,6 +43,11 @@ TAG_MODEL = "model."
 TAG_CONVENTION = "convention."
 TAG_CONTRACT = "contract"
 TAG_DECLARER = "declarer"
+# Double-dummy score of the contract, par and their difference,
+# NS view, e.g. "tags.vs_par = '0'" (tags are strings: no < or >).
+TAG_SCORE = "score"
+TAG_PAR = "par"
+TAG_VS_PAR = "vs_par"
 # Where the auction was played (a TraceSource value) and, for batch
 # runs, the id of the run, e.g. "tags.source = 'collect'".
 TAG_SOURCE = "source"

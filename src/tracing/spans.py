@@ -22,15 +22,20 @@ from consts.tracing import (
     TAG_DEALER,
     TAG_DECLARER,
     TAG_MODEL,
+    TAG_PAR,
+    TAG_SCORE,
+    TAG_VS_PAR,
     TAG_VULNERABILITY,
 )
 from models.bidding import BiddingConfig, BiddingState
 from models.tracing import AuctionSummary, BidDecision, BidObservation
+from sampler import DealSampler
 from tracing.setup import is_recording, process_tags, tag_trace
 
 # A graph node: (state, runtime) -> state update.
 Node = Callable[[BiddingState, Any], dict]
-# stream_bidding: (deal, config, dealer, vulnerability) -> (mode, chunk).
+# stream_bidding: (deal, config, dealer, vulnerability, analysis)
+# -> (mode, chunk).
 AuctionStream = Callable[..., Iterator[tuple[str, Any]]]
 
 
@@ -83,6 +88,9 @@ def result_tags(summary: AuctionSummary) -> dict[str, str]:
     return {
         TAG_CONTRACT: summary.contract or PASSED_OUT,
         TAG_DECLARER: summary.declarer or PASSED_OUT,
+        TAG_SCORE: str(summary.score_ns),
+        TAG_PAR: str(summary.par_ns),
+        TAG_VS_PAR: str(summary.vs_par),
     }
 
 
@@ -90,11 +98,14 @@ def trace_auction(stream: AuctionStream) -> AuctionStream:
     """Trace an auction stream as one `auction` trace
     (AuctionStream) -> AuctionStream.
 
-    The stream must take deal, config, dealer and vulnerability and
-    yield (mode, chunk) with "values" chunks holding the state.
-    Chunks pass through unchanged. Result tags are set by trace id:
-    the stream may be resumed in another context (web SSE), where
-    MLflow no longer sees the trace as the current one.
+    The stream must take deal, config, dealer, vulnerability and
+    analysis (DealAnalysis | None) and yield (mode, chunk) with
+    "values" chunks holding the state. Chunks pass through
+    unchanged. The analysis scores the result against par; when it
+    is None it is computed with DDS after the auction. Result tags
+    are set by trace id: the stream may be resumed in another
+    context (web SSE), where MLflow no longer sees the trace as the
+    current one.
     """
     signature = inspect.signature(stream)
 
@@ -107,7 +118,9 @@ def trace_auction(stream: AuctionStream) -> AuctionStream:
         deal = bound.arguments["deal"]
         config = bound.arguments["config"]
         dealer = bound.arguments["dealer"].name
-        vulnerability = bound.arguments["vulnerability"].name
+        vulnerable = bound.arguments["vulnerability"]
+        vulnerability = vulnerable.name
+        analysis = bound.arguments["analysis"]
 
         with mlflow.start_span(
             name=AUCTION_SPAN, span_type=SpanType.CHAIN
@@ -128,12 +141,15 @@ def trace_auction(stream: AuctionStream) -> AuctionStream:
                 if mode == "values":
                     last = chunk
                 yield mode, chunk
+            if not recording:
+                return  # tracing off: skip the DDS work
+            if analysis is None:
+                analysis = DealSampler().analyze(deal, vulnerable)
             summary = AuctionSummary.from_state(
-                BiddingState.model_validate(last)
+                BiddingState.model_validate(last), analysis
             )
             span.set_outputs(summary.model_dump())
-        if recording:
-            tag_trace(span.trace_id, result_tags(summary))
+        tag_trace(span.trace_id, result_tags(summary))
 
     return wrapper
 

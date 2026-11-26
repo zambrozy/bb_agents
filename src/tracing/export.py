@@ -25,7 +25,7 @@ def decision_records(trace: Trace) -> list[DecisionRecord]:
     if not roots or roots[0].name != AUCTION_SPAN:
         return []
     root = roots[0]
-    summary = root.outputs  # None: stopped or failed auction
+    summary = root.outputs or {}  # empty: stopped or failed auction
     tags = trace.info.tags
     spans = sorted(
         trace.search_spans(name=DECISION_SPAN),
@@ -43,9 +43,12 @@ def decision_records(trace: Trace) -> list[DecisionRecord]:
             model=tags.get(TAG_MODEL + observation.seat),
             convention=tags.get(TAG_CONVENTION + observation.seat),
             deal=root.inputs["deal"],
-            finished=summary is not None,
-            contract=summary["contract"] if summary else None,
+            finished=bool(summary),
+            contract=summary.get("contract"),
             source=tags.get(TAG_SOURCE),
+            score_ns=summary.get("score_ns"),
+            par_ns=summary.get("par_ns"),
+            vs_par=summary.get("vs_par"),
         ))
     return records
 
