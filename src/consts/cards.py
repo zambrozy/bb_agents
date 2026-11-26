@@ -45,6 +45,13 @@ class Vulnerability(IntEnum):
     NS = 2
     EW = 3
 
+    def is_vulnerable(self, seat: Seat) -> bool:
+        """Whether `seat`'s side is vulnerable (Seat) -> bool."""
+        if self in (Vulnerability.NONE, Vulnerability.BOTH):
+            return self == Vulnerability.BOTH
+        ns_side = seat.is_same_side(Seat.NORTH)
+        return ns_side == (self == Vulnerability.NS)
+
 
 # Vulnerability -> wording shown to the players.
 VULNERABILITY_TEXT = {
