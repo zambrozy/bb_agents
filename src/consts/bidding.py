@@ -59,3 +59,56 @@ CONVENTION = Literal["SAYC", "2/1 Force Game"]
 
 # A valid call string: pass, double, redouble or a bid like "4H".
 CALL_PATTERN = r"^(P|X|XX|[1-7](C|D|H|S|NT))$"
+
+# --- Duplicate scoring --------------------------------------------
+# Dicts keyed by bool are indexed by "declarer is vulnerable".
+
+# Points per contracted trick, undoubled; the first NT trick gets
+# NT_FIRST_TRICK_EXTRA on top (40, then 30 each).
+TRICK_POINTS = {
+    Strain.CLUBS: 20, Strain.DIAMONDS: 20,
+    Strain.HEARTS: 30, Strain.SPADES: 30, Strain.NOTRUMP: 30,
+}
+NT_FIRST_TRICK_EXTRA = 10
+
+# Contracted trick points multipliers of a doubled / redoubled
+# contract.
+DOUBLED_FACTOR = 2
+REDOUBLED_FACTOR = 4
+
+# Contracted trick points that make a game.
+GAME_POINTS = 100
+PART_SCORE_BONUS = 50
+GAME_BONUS = {False: 300, True: 500}
+
+# Slam level -> bonus by vulnerability.
+SMALL_SLAM_LEVEL = 6
+GRAND_SLAM_LEVEL = 7
+SLAM_BONUS = {
+    SMALL_SLAM_LEVEL: {False: 500, True: 750},
+    GRAND_SLAM_LEVEL: {False: 1000, True: 1500},
+}
+
+# Bonus for making a doubled / redoubled contract (the "insult").
+DOUBLED_INSULT_BONUS = 50
+REDOUBLED_INSULT_BONUS = 100
+
+# Points per overtrick of a doubled / redoubled contract (undoubled
+# overtricks score as contracted tricks: TRICK_POINTS).
+DOUBLED_OVERTRICK = {False: 100, True: 200}
+REDOUBLED_OVERTRICK = {False: 200, True: 400}
+
+# Undertrick penalties: penalty of the 1st, 2nd, 3rd, 4th and every
+# later undertrick.
+UNDOUBLED_UNDERTRICKS = {
+    False: (50, 50, 50, 50),
+    True: (100, 100, 100, 100),
+}
+DOUBLED_UNDERTRICKS = {
+    False: (100, 200, 200, 300),
+    True: (200, 300, 300, 300),
+}
+REDOUBLED_UNDERTRICKS = {
+    False: (200, 400, 400, 600),
+    True: (400, 600, 600, 600),
+}
