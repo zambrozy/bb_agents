@@ -18,6 +18,10 @@ DEFAULT_CONFIG_FILE = PROJECT_ROOT / DEFAULT_CONFIG_PATH
 STATIC_DIR = SRC_DIR / "web" / "static"
 STATIC_URL = "/static"
 INDEX_FILE = "index.html"
+# Frontend responses: the browser must revalidate (ETag) before
+# reusing a cached copy, so edited files show on a plain reload.
+CACHE_CONTROL_HEADER = "Cache-Control"
+NO_CACHE = "no-cache"
 
 # Deals kept in memory; the oldest is dropped beyond this.
 MAX_STORED_DEALS = 200

@@ -4,14 +4,12 @@ Each event is sent as one server-sent event whose name is its
 `type` field and whose data is the event as JSON.
 """
 
-from typing import Literal, Self
+from typing import Literal
 
 from pydantic import BaseModel
 
-from consts.bidding import BOOK_TRICKS, STRAIN_TO_CHAR
 from consts.cards import SEAT_NAMES
-from models.bidding import BiddingState
-from models.sampler import DealAnalysis
+from models.tracing import AuctionSummary
 
 
 class ProposalEvent(BaseModel):
@@ -63,53 +61,12 @@ class RejectedEvent(BaseModel):
     try_nb: int
 
 
-class DoneEvent(BaseModel):
-    """The auction is over.
-
-    Attributes:
-        auction (list[str]): All calls in order.
-        contract (str | None): e.g. '4H X by NORTH'; None if passed
-            out.
-        declarer (SEAT_NAMES | None): Declarer; None if passed out.
-        strain (str | None): Contract strain label, e.g. 'H'.
-        dd_tricks (int | None): Tricks the declarer takes double
-            dummy.
-        needed (int | None): Tricks the contract needs.
-        result (int | None): dd_tricks - needed; >= 0 makes.
-    """
+class DoneEvent(AuctionSummary):
+    """The auction is over: its calls and the contract played double
+    dummy, scored and compared to par (AuctionSummary fields;
+    `from_state(state, analysis)` builds it)."""
 
     type: Literal["done"] = "done"
-    auction: list[str]
-    contract: str | None = None
-    declarer: SEAT_NAMES | None = None
-    strain: str | None = None
-    dd_tricks: int | None = None
-    needed: int | None = None
-    result: int | None = None
-
-    @classmethod
-    def from_state(
-        cls, state: BiddingState, analysis: DealAnalysis
-    ) -> Self:
-        """Summarize a finished auction against double dummy
-        (BiddingState, DealAnalysis) -> DoneEvent."""
-        auction = [str(call) for call in state.history.calls]
-        contract = state.history.contract
-        if contract is None:
-            return cls(auction=auction)
-        dd_tricks = analysis.tricks_for(
-            contract.strain, contract.declarer
-        )
-        needed = contract.level + BOOK_TRICKS
-        return cls(
-            auction=auction,
-            contract=str(contract),
-            declarer=contract.declarer.name,
-            strain=STRAIN_TO_CHAR[contract.strain],
-            dd_tricks=dd_tricks,
-            needed=needed,
-            result=dd_tricks - needed,
-        )
 
 
 class ErrorEvent(BaseModel):

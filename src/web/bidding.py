@@ -63,7 +63,11 @@ def bidding_events(
     state = None
     try:
         for mode, chunk in stream_bidding(
-            record.deal, config, record.dealer, record.vulnerability
+            record.deal,
+            config,
+            record.dealer,
+            record.vulnerability,
+            record.analysis,
         ):
             if mode == "values":
                 state = BiddingState.model_validate(chunk)
