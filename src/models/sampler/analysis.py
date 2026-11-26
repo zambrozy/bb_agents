@@ -41,6 +41,12 @@ class DealAnalysis(BaseModel):
             par_contracts=par["par_contracts_string"],
         )
 
+    @property
+    def par_ns(self) -> int:
+        """Par score from North-South's view, e.g. 1510 for
+        'NS 1510' (int)."""
+        return int(self.par_score[0].split()[-1])
+
     def tricks_for(self, strain: Strain, declarer: Seat) -> int:
         """Tricks available for `declarer` in `strain` (int)."""
         return self.tricks[strain][declarer]
