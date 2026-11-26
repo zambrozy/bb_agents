@@ -10,7 +10,13 @@ from typing import Self
 from pydantic import BaseModel
 
 from consts.cards import SEAT_NAMES, VULNERABILITY_NAMES
-from models.bidding import BiddingHistory, BiddingState, PlayerReply
+from models.bidding import (
+    BiddingHistory,
+    BiddingState,
+    ContractResult,
+    PlayerReply,
+)
+from models.sampler import DealAnalysis
 
 
 class BidObservation(BaseModel):
@@ -84,29 +90,27 @@ class BidDecision(BaseModel):
         )
 
 
-class AuctionSummary(BaseModel):
-    """Result of a finished auction.
+class AuctionSummary(ContractResult):
+    """Result of a finished auction: its calls plus the contract
+    played double dummy, scored and compared to par (ContractResult
+    fields).
 
     Attributes:
         auction (list[str]): All calls in order.
-        contract (str | None): e.g. '4H X by NORTH'; None if passed
-            out.
-        declarer (SEAT_NAMES | None): Declarer; None if passed out.
     """
 
     auction: list[str]
-    contract: str | None = None
-    declarer: SEAT_NAMES | None = None
 
     @classmethod
-    def from_state(cls, state: BiddingState) -> Self:
-        """Summary of a finished auction (BiddingState)
-        -> AuctionSummary."""
-        contract = state.history.contract
+    def from_state(
+        cls, state: BiddingState, analysis: DealAnalysis
+    ) -> Self:
+        """Summary of a finished auction (BiddingState, DealAnalysis
+        of its deal and vulnerability) -> AuctionSummary."""
+        result = ContractResult.from_history(state.history, analysis)
         return cls(
             auction=[str(call) for call in state.history.calls],
-            contract=None if contract is None else str(contract),
-            declarer=None if contract is None else contract.declarer.name,
+            **result.model_dump(),
         )
 
 
@@ -127,6 +131,10 @@ class DecisionRecord(BaseModel):
             not finished.
         source (str | None): Where the auction was played (web,
             play, collect); None for traces without the tag.
+        score_ns (int | None): Double-dummy score of the contract,
+            NS view; None if not finished or traced before scoring.
+        par_ns (int | None): Par score, NS view.
+        vs_par (int | None): score_ns - par_ns.
     """
 
     trace_id: str
@@ -138,3 +146,6 @@ class DecisionRecord(BaseModel):
     finished: bool
     contract: str | None = None
     source: str | None = None
+    score_ns: int | None = None
+    par_ns: int | None = None
+    vs_par: int | None = None
