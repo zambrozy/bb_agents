@@ -26,6 +26,7 @@ def create_players(
             player.convention,
             player.timeout,
             player.max_retries,
+            player.requests_per_minute,
         )
         for name, player in config.players.items()
     }
