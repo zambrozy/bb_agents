@@ -63,8 +63,24 @@ After `route_bid_turn` the graph ends once the auction is over, otherwise the ne
 model = "google_genai:gemini-3.1-flash-lite"  # "<provider>:<model name>"
 convention = "SAYC"                           # or "2/1 Force Game"
 timeout = 60        # optional: seconds to wait for a reply
-max_retries = 1     # optional: retries after a failed request
+max_retries = 3     # optional: retries after a failed request
+requests_per_minute = 14  # optional: request limit of the model
 ```
+
+`max_retries` counts retries after the first request for every provider
+(for `google_genai` models it is passed on as `max_retries + 1`, since
+Google counts all attempts). Google retries 408, 429 and 5xx errors with
+exponential backoff (about 1, 2, 4 s).
+
+`requests_per_minute` paces calls to a model so it stays under the
+provider's quota (the Gemini free tier allows 15 per minute per model).
+All seats playing the same model share one limiter, also across
+auctions running at the same time in one process (e.g. the web
+server); the first seat's value counts. Calls are spaced evenly
+(one every 60 / limit seconds), so a 15-20 call auction takes about a
+minute at 14 per minute. The limiter is in memory: separate processes
+(e.g. `make serve` and `make collect` at the same time) each have their
+own and together can still exceed the quota.
 
 To play a seat with Claude Code instead of an API model, use the `claude_code:` prefix with a model alias, e.g. `model = "claude_code:sonnet"` (or `opus`, `haiku`). The seat then runs `claude -p` from `src/agents/player_claude_code.py`: it needs the `claude` CLI on `PATH`, counts against your Claude subscription, takes several seconds per bid, runs with tools disabled and with the player prompt in place of the default Claude Code one, and starts in an empty temp directory so no `CLAUDE.md` is loaded. `timeout` and `max_retries` apply to the `claude` call. API and Claude Code seats can be mixed.
 
