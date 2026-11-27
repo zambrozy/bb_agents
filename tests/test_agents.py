@@ -179,6 +179,43 @@ def test_config_rejects_unknown_convention():
         BiddingConfig.model_validate(_config(NORTH="SYAC", SOUTH="SYAC"))
 
 
+def test_config_requests_per_minute_is_optional_and_positive():
+    """No limit by default; a limit must be above zero."""
+    config = BiddingConfig.model_validate(_config())
+    assert config.players["NORTH"].requests_per_minute is None
+    data = _config()
+    data["players"]["NORTH"]["requests_per_minute"] = 0
+    with pytest.raises(ValueError):
+        BiddingConfig.model_validate(data)
+
+
+def _init_kwargs(model_name: str, **options) -> dict:
+    """Keyword arguments create_player passes to init_chat_model."""
+    with patch.object(player_module, "init_chat_model") as init:
+        player_module.create_player(model_name, "NORTH", "SAYC", **options)
+    return init.call_args.kwargs
+
+
+def test_seats_of_one_model_share_a_rate_limiter():
+    """Same model: one limiter (first limit wins); other model or no
+    limit: its own limiter or none."""
+    first = _init_kwargs("p:m", requests_per_minute=15)["rate_limiter"]
+    second = _init_kwargs("p:m", requests_per_minute=30)["rate_limiter"]
+    other = _init_kwargs("p:other", requests_per_minute=15)["rate_limiter"]
+    assert first is second
+    assert first.requests_per_second == 15 / 60
+    assert other is not first
+    assert _init_kwargs("p:m")["rate_limiter"] is None
+
+
+def test_google_genai_retries_count_the_first_attempt():
+    """Google counts attempts, so it gets one more than the retries;
+    other providers get the retries as they are."""
+    google = _init_kwargs("google_genai:gemini", max_retries=3)
+    assert google["max_retries"] == 4
+    assert _init_kwargs("p:m", max_retries=3)["max_retries"] == 3
+
+
 class _ScriptedModel:
     """Stands in for a chat model; replies come from `calls`."""
 
