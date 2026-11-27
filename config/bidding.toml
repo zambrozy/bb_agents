@@ -1,19 +1,30 @@
 # Players of the bidding table. Each seat needs a model and a convention.
 # model: "<provider>:<model-name>" as understood by langchain init_chat_model.
 # convention: "SAYC" or "2/1 Force Game"; partners must play the same one.
+# requests_per_minute: optional limit of the model, shared by all seats
+# playing it in one process (Gemini free tier: 15). The first seat's
+# value counts. Ignored by claude_code players.
 
 [players.NORTH]
 model = "google_genai:gemini-3.5-flash-lite"
+#model = "claude_code:sonnet"
 convention = "SAYC"
+requests_per_minute = 14
 
 [players.SOUTH]
 model = "google_genai:gemini-3.5-flash-lite"
+# model = "claude_code:sonnet"
 convention = "SAYC"
+requests_per_minute = 14
 
 [players.EAST]
 model = "google_genai:gemini-3.5-flash-lite"
+# model = "claude_code:sonnet"
 convention = "SAYC"
+requests_per_minute = 14
 
 [players.WEST]
 model = "google_genai:gemini-3.5-flash-lite"
+# model = "claude_code:sonnet"
 convention = "SAYC"
+requests_per_minute = 14

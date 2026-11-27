@@ -20,12 +20,16 @@ class PlayerConfig(BaseModel):
         convention (CONVENTION): Bidding convention to play.
         timeout (float): Seconds to wait for a model reply.
         max_retries (int): Retries after a failed model request.
+        requests_per_minute (float | None): Request limit of the
+            model, shared by all seats playing it in this process;
+            None for no limit. Ignored by Claude Code players.
     """
 
     model: str
     convention: CONVENTION
     timeout: float = Field(default=DEFAULT_TIMEOUT, gt=0)
     max_retries: int = Field(default=DEFAULT_MAX_RETRIES, ge=0)
+    requests_per_minute: float | None = Field(default=None, gt=0)
 
 
 class BiddingConfig(BaseModel):
